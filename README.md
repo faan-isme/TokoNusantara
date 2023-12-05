@@ -1,4 +1,4 @@
-# QuickBuy
+# Toko Nusantara
 Capston Projek MSIB 5 LearningX kelompok1
 <h2>Anggota</h2>
 <ol>
