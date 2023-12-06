@@ -20,3 +20,9 @@ Capston Projek MSIB 5 LearningX kelompok1
   <li>-git commit -m "isi pesan singkat"</li>
   <li>-git push -u origin namaBranch <br>jangan ke main branch</li>
 </ol>
+
+nb:
+utk style max-height
+.logo img {
+max-height: 25px;
+}
