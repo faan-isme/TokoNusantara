@@ -51,6 +51,10 @@
         
     </style>
     <script>
+        {% if msg %}
+            alert('{{msg}}')
+            window.location.href='/login'
+        {% endif %}
         $(document).ready(function () {
             // Initial setup
             toggleFields('customer');
