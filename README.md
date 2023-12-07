@@ -26,3 +26,6 @@ utk style max-height
 .logo img {
 max-height: 25px;
 }
+
+# instal package
+-pip install -r requirement.txt
