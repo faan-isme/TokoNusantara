@@ -8,6 +8,7 @@ import hashlib
 from flask import Flask, render_template, jsonify, request, redirect, url_for, make_response, session
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+from bson import ObjectId
 
 app = Flask(__name__)
 dotenv_path = join(dirname(__file__),'.env')
@@ -37,8 +38,9 @@ def login():
         )
         if result:
             role = result.get('role')
+            id = str(result.get('_id'))
             payload = {
-                "id": email_receive,
+                "id": id,
                 "role": role,
                 # the token will be valid for 24 hours
                 "exp": datetime.utcnow() + timedelta(seconds=60 * 60 * 24),
@@ -68,6 +70,8 @@ def register():
             "username": username_receive,                               # id
             "email": email_receive,                                     # email
             "password": password_hash,                                  # password
+            "no_telp":"",                                               # nomor telepon
+            "alamat":"",                                                # alamat
             "role": "customer",                                         # role
             "profile_pic": "",                                          # profile image file name
             "profile_pic_real": "profile_pics/profile_placeholder.png", # a default profile image
@@ -83,8 +87,9 @@ def register():
             "toserbaname": toserbaname_receive,                         # id
             "email": email_receive,                                     # email
             "password": password_hash,                                  # password
+            "no_telp":"",                                               # nomor telepon
+            "alamat":"",                                                # alamat
             "role": "seller",                                           # role
-            "profile_pic": "",                                          # profile image file name
             "profile_pic_real": "profile_pics/profile_placeholder.png", # a default profile image
             "profile_info": ""                                          # a profile description
         }
@@ -112,10 +117,191 @@ def home():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
-    
+@app.route('/profile')
+def profile():
+    token_receive = request.cookies.get('token')
+    msg = request.args.get('msg')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        # ambil data user & data barang
+        # data['jml']= db.stok.count()
+        # data['stok'] = db.stok.find()
+        id_obj = ObjectId(payload['id'])
+        data = db.users.find_one({'_id': id_obj})
+        user_role = payload['role']
+        if user_role == 'customer':
+            return render_template('profileCustomer.html',data=data,msg=msg)
+        elif user_role == 'seller':
+            return render_template('profileSeller.html',data=data,msg=msg)
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
+@app.route('/profile/edit', methods=['POST'])
+def editProfile():
+    token_receive = request.cookies.get('token')
+    # ambil data form
+    username_receive = request.form.get('username')
+    toserbaname_receive = request.form.get('toserbaname')
+    email_receive = request.form['email']
+    password_receive = request.form.get('password')
+    newPassword_receive = request.form.get('newPassword')
+    alamat_receive = request.form.get('alamat')
+    noTelp_receive = request.form.get('no_telp')
+    profile_receive = request.files.get('foto')
+    desc_receive = request.form.get('desc')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id = payload['id']
+        id_obj = ObjectId(user_id)
+        # kondisi jika password diterima/ganti password
+        if password_receive:
+            # otentikasi
+            pw_hash = hashlib.sha256(password_receive.encode("utf-8")).hexdigest()
+            result = db.users.find_one(
+                {
+                    "_id": id_obj,
+                    "password": pw_hash,
+                }
+            )
+            
+            # otentikasi berhasil
+            if result:
+                # cek role
+                if user_role == 'customer':
+                    if profile_receive:
+                        new_doc={
+                        'username':username_receive,
+                        'email':email_receive,
+                        'password':newPassword_receive,
+                        'profile_info':desc_receive,
+                        'no_telp':noTelp_receive,                                               
+                        'alamat':alamat_receive,
+                    
+                        }
+                        uploadfoto(profile_receive,user_id,new_doc)
+                        db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                        response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
+                        return response
+                    else:
+                        new_doc={
+                        'username':username_receive,
+                        'email':email_receive,
+                        'password':newPassword_receive,
+                        'profile_info':desc_receive,
+                        'no_telp':noTelp_receive,                                               
+                        'alamat':alamat_receive,
+                        }
+                        db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                        response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
+                        return response
+                else :
 
-
+                    if profile_receive:
+                        new_doc={
+                            'toserbaname':toserbaname_receive,
+                            'email':email_receive,
+                            'password':newPassword_receive,
+                            'profile_info':desc_receive,
+                            'no_telp':noTelp_receive,                                               
+                            'alamat':alamat_receive,
+                        }
+                        uploadfoto(profile_receive,user_id,new_doc)
+                        db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                        response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
+                        return response
+                    else:
+                        new_doc={
+                            'toserbaname':toserbaname_receive,
+                            'email':email_receive,
+                            'password':newPassword_receive,
+                            'profile_info':desc_receive,
+                            'no_telp':noTelp_receive,                                               
+                            'alamat':alamat_receive,
+                        }
+                        db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                        response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
+                        return response
+                        
+            # outentikasi gagal
+            else:
+                response = make_response(redirect(url_for('profile',msg='password tidak cocok')))
+                return response
+            
+        else:
+            
+            if user_role == 'customer':
+                
+                if profile_receive:
+                    new_doc={
+                    'toserbaname':toserbaname_receive,
+                    'email':email_receive,
+                    'profile_info':desc_receive,
+                    'no_telp':noTelp_receive,                                               
+                    'alamat':alamat_receive,
+                
+                    }
+                    uploadfoto(profile_receive,user_id,new_doc)
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+                else:
+                    new_doc={
+                    'username':username_receive,
+                    'email':email_receive,
+                    'profile_info':desc_receive,
+                    'no_telp':noTelp_receive,                                               
+                    'alamat':alamat_receive,
+                
+                    }
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+            else :
+                
+                if profile_receive:
+                    new_doc={
+                    'toserbaname':toserbaname_receive,
+                    'email':email_receive,
+                    'profile_info':desc_receive,
+                    'no_telp':noTelp_receive,                                               
+                    'alamat':alamat_receive,
+                
+                    }
+                    uploadfoto(profile_receive,user_id,new_doc)
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+                else:
+                    new_doc={
+                    'toserbaname':toserbaname_receive,
+                    'email':email_receive,
+                    'profile_info':desc_receive,
+                    'no_telp':noTelp_receive,                                               
+                    'alamat':alamat_receive,
+                
+                    }
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+      
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    
+# fungsi update foto
+def uploadfoto(profile_receive,user_id,new_doc):
+    filename = secure_filename(profile_receive.filename)
+    extension = filename.split(".")[-1]
+    file_path = f"profile_pics/{user_id}.{extension}"
+    profile_receive.save("./static/" + file_path)
+    new_doc["profile_pic_real"] = file_path
+    return new_doc
 
     
 
