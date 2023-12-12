@@ -22,7 +22,12 @@ db = client.toknus
 @app.route('/')
 def landingpage():
     return render_template('index.html')
-
+# route logout
+@app.route('/logout')
+def logout():
+    response = make_response(redirect(url_for('landingpage')))
+    response.delete_cookie('token')
+    return response
 # route login
 @app.route("/login", methods=["GET", "POST"])
 def login():
