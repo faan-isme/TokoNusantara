@@ -63,6 +63,11 @@ def register():
     toserbaname_receive = request.form.get('toserbaname')
     email_receive = request.form['email']
     password_receive = request.form['password']
+    # cek email
+    exists = bool(db.users.find_one({"email": email_receive}))
+    if exists:
+        response = make_response(redirect(url_for('login',msg='Email telah digunakan!')))
+        return response
     # jika register sebagai custommer
     if username_receive:
         password_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
@@ -145,7 +150,7 @@ def editProfile():
     token_receive = request.cookies.get('token')
     # ambil data form
     username_receive = request.form.get('username')
-    toserbaname_receive = request.form.get('toserbaname')
+    toserbaname_receive = request.form.get('toserbaname') 
     email_receive = request.form['email']
     password_receive = request.form.get('password')
     newPassword_receive = request.form.get('newPassword')
@@ -168,61 +173,44 @@ def editProfile():
                     "password": pw_hash,
                 }
             )
-            
+            # hash pw baru
+            newPassword_receive = hashlib.sha256(newPassword_receive.encode("utf-8")).hexdigest()
             # otentikasi berhasil
             if result:
                 # cek role
                 if user_role == 'customer':
-                    if profile_receive:
-                        new_doc={
+                    new_doc={
                         'username':username_receive,
                         'email':email_receive,
                         'password':newPassword_receive,
                         'profile_info':desc_receive,
                         'no_telp':noTelp_receive,                                               
                         'alamat':alamat_receive,
-                    
-                        }
+                    }
+                    if profile_receive:
                         uploadfoto(profile_receive,user_id,new_doc)
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
                         return response
                     else:
-                        new_doc={
-                        'username':username_receive,
-                        'email':email_receive,
-                        'password':newPassword_receive,
-                        'profile_info':desc_receive,
-                        'no_telp':noTelp_receive,                                               
-                        'alamat':alamat_receive,
-                        }
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
                         return response
                 else :
-
-                    if profile_receive:
-                        new_doc={
+                    new_doc={
                             'toserbaname':toserbaname_receive,
                             'email':email_receive,
                             'password':newPassword_receive,
                             'profile_info':desc_receive,
                             'no_telp':noTelp_receive,                                               
                             'alamat':alamat_receive,
-                        }
+                    }
+                    if profile_receive:
                         uploadfoto(profile_receive,user_id,new_doc)
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
                         return response
                     else:
-                        new_doc={
-                            'toserbaname':toserbaname_receive,
-                            'email':email_receive,
-                            'password':newPassword_receive,
-                            'profile_info':desc_receive,
-                            'no_telp':noTelp_receive,                                               
-                            'alamat':alamat_receive,
-                        }
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
                         return response
@@ -235,56 +223,36 @@ def editProfile():
         else:
             
             if user_role == 'customer':
-                
-                if profile_receive:
-                    new_doc={
-                    'toserbaname':toserbaname_receive,
-                    'email':email_receive,
-                    'profile_info':desc_receive,
-                    'no_telp':noTelp_receive,                                               
-                    'alamat':alamat_receive,
-                
-                    }
-                    uploadfoto(profile_receive,user_id,new_doc)
-                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
-                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
-                    return response
-                else:
-                    new_doc={
+                new_doc={
                     'username':username_receive,
                     'email':email_receive,
                     'profile_info':desc_receive,
                     'no_telp':noTelp_receive,                                               
                     'alamat':alamat_receive,
-                
-                    }
-                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
-                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
-                    return response
-            else :
-                
+                }
                 if profile_receive:
-                    new_doc={
-                    'toserbaname':toserbaname_receive,
-                    'email':email_receive,
-                    'profile_info':desc_receive,
-                    'no_telp':noTelp_receive,                                               
-                    'alamat':alamat_receive,
-                
-                    }
                     uploadfoto(profile_receive,user_id,new_doc)
                     db.users.update_one({'_id':id_obj},{'$set':new_doc})
                     response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
                     return response
                 else:
-                    new_doc={
-                    'toserbaname':toserbaname_receive,
-                    'email':email_receive,
-                    'profile_info':desc_receive,
-                    'no_telp':noTelp_receive,                                               
-                    'alamat':alamat_receive,
-                
-                    }
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+            else :
+                new_doc={
+                'toserbaname':toserbaname_receive,
+                'email':email_receive,
+                'profile_info':desc_receive,
+                'no_telp':noTelp_receive,                                               
+                'alamat':alamat_receive,
+                }                
+                if profile_receive:
+                    uploadfoto(profile_receive,user_id,new_doc)
+                    db.users.update_one({'_id':id_obj},{'$set':new_doc})
+                    response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
+                    return response
+                else:
                     db.users.update_one({'_id':id_obj},{'$set':new_doc})
                     response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
                     return response
