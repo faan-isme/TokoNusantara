@@ -119,7 +119,7 @@ def home():
         if user_role == 'customer':
             return render_template('homeCustomer.html')
         elif user_role == 'seller':
-            return render_template('homeSeller.html')
+            return render_template('seller/homeSeller.html')
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
