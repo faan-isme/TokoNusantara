@@ -74,11 +74,11 @@
 
                 // Update form fields based on user type
                 if (userType === 'customer') {
-                    $('#tokoname').attr('id', 'username').attr('name', 'username');
-                    $('label[for="username"]').text('Username');
+                    $('#toserbaname').attr('id', 'username').attr('name', 'username');
+                    $('label[for="toserbaname"]').attr('for', 'username').text('Username');
                 } else if (userType === 'seller') {
-                    $('#username').attr('id', 'tokoname').attr('name', 'tokoname');
-                    $('label[for="username"]').text('Tokoname');
+                    $('#username').attr('id', 'toserbaname').attr('name', 'toserbaname');
+                    $('label[for="username"]').attr('for', 'toserbaname').text('Toserbaname');
                 }
             }
         });
@@ -199,21 +199,21 @@
                 <!-- Username input -->
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control border-0 border-bottom  px-0" id="username" name="username"
-                        placeholder="username" style="border-radius: 0;" required>
+                         style="border-radius: 0;" required>
                     <label for="username" class="px-0">Username</label>
                 </div>
 
                 <!-- Email input -->
                 <div class="form-floating mb-3">
                     <input type="email" class="form-control border-0 border-bottom  px-0" id="registerEmail"
-                        name="email" placeholder="name@example.com" style="border-radius: 0;" required>
+                        name="email" style="border-radius: 0;" required>
                     <label for="registerEmail" class="px-0">Email address</label>
                 </div>
 
                 <!-- Password input -->
                 <div class="form-floating mb-3">
                     <input type="password" class="form-control border-0 border-bottom px-0" id="registerPassword"
-                        name="password" placeholder="Password" style="border-radius: 0;" required>
+                        name="password"  style="border-radius: 0;" required>
                     <label for="registerPassword" class="px-0">Password</label>
                 </div>
 

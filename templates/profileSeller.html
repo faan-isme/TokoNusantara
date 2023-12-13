@@ -120,11 +120,11 @@
     </style>
     <script>
         {% if msg %}
-            alert('{{msg}}')
-            window.location.href='/profile'
+        alert('{{msg}}')
+        window.location.href = '/profile'
         {% endif %}
         $(document).ready(function () {
-           
+
             // Initial setup
             toggleFields('Semua');
 
@@ -143,12 +143,100 @@
 
             }
         });
+        function is_password(asValue) {
+            var regExp = /^[0-9a-zA-Z!@#$%^&*]{8,20}$/;
+            return regExp.test(asValue);
+          }
+        function is_telephone(asValue) {
+            // karena optional
+            // Nomor telepon minimal 0 digit, maksimal 15 digit 
+            var regExp = /^\d{0,15}$/;
+            return regExp.test(asValue);
+        }
+        function is_name(asValue) {
+            // boleh huruf dan angka, minimal 3 char, maksimal 15 char, 
+            var regExp = /^[a-zA-Z0-9_-]{3,20}$/;
+            return regExp.test(asValue);
+        }
+        function is_email(asValue) {
+            var regExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return regExp.test(asValue);
+        }
+        function is_foto(asValue) {
+            //hanya menerima jpg, jpeg dan png
+            var regExp = /^.*\.(jpg|jpeg|png)$/i;
+            // ukuran maksimal 2MB
+            var maxFileSize = 2000000; // 2MB
+            return regExp.test(asValue.name.toLowerCase()) && asValue.size <= maxFileSize;
+        }
         function submitForm() {
+            let password = $('#password').val()
+            let newPassword = $('#newPassword').val()
+            let toserbaname = $('#toserbaname').val()
+            let email = $('#email').val()
+            let no_telp = $('#no_telp').val()
+            let foto = $('#foto')[0].files[0];
+            
+            if (toserbaname === '') {
+                $('#info-name')
+                    .text('Nama toko tidak boleh kosong!')
+                    .removeClass('d-none');
+                $("#toserbaname").focus();
+
+                return;
+            }
+            if (!is_name(toserbaname)) {
+                $('#info-name')
+                    .text('Hanya masukkan angka dan huruf, minimal 3 karakter Maksimal 20 karakter !')
+                    .removeClass('d-none');
+                $("#tosebaname").focus();
+                return;
+            }
+            if (email === '') {
+                $('#info-email')
+                    .text('Email toko tidak boleh kosong!')
+                    .removeClass('d-none');
+                $("#toserbaname").focus();
+                return;
+            }
+            if (!is_email(email)) {
+                $('#info-email')
+                    .text('Masukkan email')
+                    .removeClass('d-none');
+                $("#no_telp").focus();
+                return;
+            }
+            if (password && newPassword || password && !newPassword){
+                if (!is_password(newPassword) || !is_password(password)) {
+                $('#info-password')
+                    .text('Silakan masukkan 8-20 karakter  huruf, angka, atau karakter khusus berikut (!@#$%^&*)')
+                    .removeClass('d-none');
+                $("#tosebaname").focus();
+                return;}
+            }
+
+            
+            if (!is_telephone(no_telp)) {
+                $('#info-no_telp')
+                    .text('Hanya masukkan angka, Maksimal 15 digit !')
+                    .removeClass('d-none');
+                $("#no_telp").focus();
+                return;
+            }
+           if (foto){
+            if (!is_foto(foto)) {
+                $('#info-foto')
+                    .text('Hanya menerima JPG, JPEG dan PNG, Maksimal 2MB !')
+                    .removeClass('d-none');
+                $("#foto").focus();
+                return;
+            }
+           }
+            
+
             // Mengambil referensi ke formulir
-            var form = document.getElementById('formEditProfile');
-            console.log(form)
             // Melakukan pengiriman formulir secara manual
-            form.submit();
+            $('#formEditProfile').submit();
         }
 
     </script>
@@ -159,12 +247,12 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
-            <a href="#" class="link-list ">Home</a>
-            <a href="#" class="link-list">MyList</a>
+            <a href="/home" class="link-list ">Home</a>
+            <a href="/dashboard" class="link-list">Dashboard</a>
             <a href="#" class="link-list active">Profile</a>
         </div>
         <div class="nav-logout">
-            <a href="#" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
+            <a href="/logout" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
                     style="color: #000000;"></i></a>
         </div>
     </nav>
@@ -174,8 +262,9 @@
         <div class="container-sm  d-flex  justify-content-center flex-wrap">
             <div class=" profileimg flex-warap flex-column d-flex align-items-center flex-center">
                 <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
-                    <img  src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle" style="height: 100%;">
-                    <!-- src="/static/img/carousel-login-1.jpg" -->
+                    <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
+                        style="height: 100%;">
+                    
                 </div>
 
                 <h5>{{data['toserbaname']}}</h5>
@@ -202,8 +291,7 @@
                     <div class="mx-1 wicon"><i class="fa-solid fa-location-dot" style="color: #ff0000;"></i></div>
                     <div class="mx-1 wket">Alamat</div>
                     <div class="mx-1">:</div>
-                    <div class="mx-1"><a href="{{data['alamat']}}"
-                            target="_blank">{{data['alamat']}}</a></div>
+                    <div class="mx-1"><a href="{{data['alamat']}}" target="_blank">{{data['alamat']}}</a></div>
                 </div>
                 <div class="desc">
                     <div class="mx-1 wicon"><i class="fa-brands fa-whatsapp" style="color: #1b9834;"></i></div>
@@ -354,35 +442,43 @@
         </div>
     </div>
     <!-- Modal -->
-    <div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="editProfile" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+                    <h5 class="modal-title" id="editProfile">Edit Profile</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
-                        
+
                         <div class="mb-3">
-                            <label for="newToserbaName" class="form-label">Toserba name</label>
-                            <input type="text" class="form-control" id="newToserbaName"  name="toserbaname" value="{{data['toserbaname']}}">
+                            <label for="toserbaname" class="form-label">Toserba name</label>
+                            <input type="text" class="form-control" id="toserbaname" name="toserbaname"
+                                value="{{data['toserbaname']}}">
+                            <p id="info-name" class="text-danger d-none"></p>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email"  name="email" value="{{data['email']}}">
+                            <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
+                            <p id="info-email" class="text-danger d-none"></p>
                         </div>
                         <div class="mb-3">
                             <label for="newPassword" class="form-label">Edit password</label>
                             <div class="d-flex">
-                                <input type="password" class="form-control me-2" id="password" name="password" placeholder="password">
-                                <input type="password" class="form-control ms-2" id="newPassword" name="newPassword" placeholder="new password">
+                                <input type="password" class="form-control me-2" id="password" name="password"
+                                    placeholder="password">
+                                <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
+                                    placeholder="new password">
                             </div>
+                            <p id="info-password" class="text-danger d-none"></p>
 
                         </div>
                         <div class="mb-3">
                             <label for="no_telp" class="form-label">No Telepon/WA </label>
-                            <input class="form-control" type="text" id="no_telp" name="no_telp" value="{{data['no_telp']}}">
+                            <input class="form-control" type="tel" id="no_telp" name="no_telp"
+                                value="{{data['no_telp']}}">
+                            <p id="info-no_telp" class="text-danger d-none"></p>
                         </div>
                         <div class="mb-3">
                             <label for="alamat" class="form-label">Link google Map </label>
@@ -390,11 +486,14 @@
                         </div>
                         <div class="mb-3">
                             <label for="foto" class="form-label">Foto </label>
-                            <input class="form-control" type="file" id="foto" name="foto" value="{{data['profile_pic']}}">
+                            <input class="form-control" type="file" id="foto" name="foto"
+                                value="{{data['profile_pic']}}">
+                            <p id="info-foto" class="text-danger d-none"></p>
                         </div>
                         <div class="mb-3">
                             <label for="deskripsi" class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="deskripsi" rows="3" name="desc" >{{data['profile_info']}}</textarea>
+                            <textarea class="form-control" id="deskripsi" rows="3"
+                                name="desc">{{data['profile_info']}}</textarea>
                         </div>
                     </form>
                 </div>
