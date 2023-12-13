@@ -1,0 +1,38 @@
+* {
+    font-family: 'Roboto', sans-serif;
+}
+
+.nav-container {
+    background-color: white;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    box-shadow: 0rem 0.13rem 3px rgba(0, 0, 0, 0.15) !important;
+    z-index: 1;
+    position: sticky;
+}
+
+.nav-container .nav-link {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-link .link-list {
+    text-decoration: unset;
+    color: black;
+    margin: 0px 8px;
+}
+
+.c-item {
+    height:280px;
+  }
+
+  .c-img {
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.6);
+
+  }
