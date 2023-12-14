@@ -142,7 +142,7 @@ def profile():
         if user_role == 'customer':
             return render_template('profileCustomer.html',data=data,msg=msg)
         elif user_role == 'seller':
-            return render_template('profileSeller.html',data=data,msg=msg)
+            return render_template('seller/profileSeller.html',data=data,msg=msg)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
