@@ -143,10 +143,46 @@
 
             }
         });
+        function refresh(){
+            $('#toserbaname').val("{{data['toserbaname']}}");
+            $('#email').val("{{data['email']}}");
+            $('#deskripsi').val("{{data['profile_info']}}");
+            $('#alamat').val("{{data['alamat']}}");
+            $('#foto').val("{{data['profile_pic']}}");
+            $('#no_telp').val("{{data['no_telp']}}");
+        }
+        function count_char(){
+            
+            // Ambil nilai dari textarea
+            var deskripsi = $("#deskripsi").val();
+            let max = 50;
+            // Hitung panjang karakter
+            var charCount = max-deskripsi.length;
+            // Update tampilan panjang karakter
+            $("#charCount").text('Deskripsi ('+charCount+'/50)');
+            //peringatan validasi
+            if (!is_desc(deskripsi)) {
+                $('#info-descripsi')
+                    .text('Maksimal 50 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
+                    .removeClass('d-none');
+                $("#deskripsi").focus();
+                return;
+            }else{
+                $('#info-descripsi')
+                    .text('')
+                    .addClass('d-none');
+            }
+              
+        }
+        function is_desc(asValue) {
+            var regExp = /^([A-Za-z0-9()\/@*.,:!@#$%\s]{0,50})?$/;
+            return regExp.test(asValue);
+        }
+
         function is_password(asValue) {
             var regExp = /^[0-9a-zA-Z!@#$%^&*]{8,20}$/;
             return regExp.test(asValue);
-          }
+        }
         function is_telephone(asValue) {
             // karena optional
             // Nomor telepon minimal 0 digit, maksimal 15 digit 
@@ -174,9 +210,10 @@
             let newPassword = $('#newPassword').val()
             let toserbaname = $('#toserbaname').val()
             let email = $('#email').val()
+            let deskripsi = $('#deskripsi').val()
             let no_telp = $('#no_telp').val()
             let foto = $('#foto')[0].files[0];
-            
+
             if (toserbaname === '') {
                 $('#info-name')
                     .text('Nama toko tidak boleh kosong!')
@@ -206,16 +243,17 @@
                 $("#no_telp").focus();
                 return;
             }
-            if (password && newPassword || password && !newPassword){
+            if (password && newPassword || password && !newPassword) {
                 if (!is_password(newPassword) || !is_password(password)) {
-                $('#info-password')
-                    .text('Silakan masukkan 8-20 karakter  huruf, angka, atau karakter khusus berikut (!@#$%^&*)')
-                    .removeClass('d-none');
-                $("#tosebaname").focus();
-                return;}
+                    $('#info-password')
+                        .text('Silakan masukkan 8-20 karakter  huruf, angka, atau karakter khusus berikut (!@#$%^&*)')
+                        .removeClass('d-none');
+                    $("#tosebaname").focus();
+                    return;
+                }
             }
 
-            
+
             if (!is_telephone(no_telp)) {
                 $('#info-no_telp')
                     .text('Hanya masukkan angka, Maksimal 15 digit !')
@@ -223,16 +261,23 @@
                 $("#no_telp").focus();
                 return;
             }
-           if (foto){
-            if (!is_foto(foto)) {
-                $('#info-foto')
-                    .text('Hanya menerima JPG, JPEG dan PNG, Maksimal 2MB !')
+            if (foto) {
+                if (!is_foto(foto)) {
+                    $('#info-foto')
+                        .text('Hanya menerima JPG, JPEG dan PNG, Maksimal 2MB !')
+                        .removeClass('d-none');
+                    $("#foto").focus();
+                    return;
+                }
+            }
+            if (!is_desc(deskripsi)) {
+                $('#info-descripsi')
+                    .text('Maksimal 25 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
                     .removeClass('d-none');
-                $("#foto").focus();
+                $("#deskripsi").focus();
                 return;
             }
-           }
-            
+
 
             // Mengambil referensi ke formulir
             // Melakukan pengiriman formulir secara manual
@@ -264,7 +309,7 @@
                 <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
                     <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
                         style="height: 100%;">
-                    
+
                 </div>
 
                 <h5>{{data['toserbaname']}}</h5>
@@ -274,7 +319,7 @@
                 </div>
                 <div class="mt-2">
                     <button type="button" style="border: unset; border-radius:10px; background-color:unset"
-                        data-bs-toggle="modal" data-bs-target="#editProfile"><i class="fa-solid fa-pen-to-square"
+                        data-bs-toggle="modal" data-bs-target="#editProfile" onclick="refresh()"><i class="fa-solid fa-pen-to-square"
                             style="color: #1d3a6d;"></i>Edit</button>
                 </div>
             </div>
@@ -491,9 +536,10 @@
                             <p id="info-foto" class="text-danger d-none"></p>
                         </div>
                         <div class="mb-3">
-                            <label for="deskripsi" class="form-label">Deskripsi</label>
+                            <label for="deskripsi" class="form-label" id="charCount">Deskripsi </label>
                             <textarea class="form-control" id="deskripsi" rows="3"
-                                name="desc">{{data['profile_info']}}</textarea>
+                                name="desc" onkeyup="count_char()">{{data['profile_info']}}</textarea>
+                            <p id="info-descripsi" class="text-danger d-none"></p>
                         </div>
                     </form>
                 </div>
