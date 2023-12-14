@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Profile - Toko Nusantara</title>
+    <title>{% block title %}{% endblock %}</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -32,16 +32,17 @@
 
 
 
-    
+
 </head>
 
 <body>
 
     <nav class="nav-container fixed-top">
-        <div class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="logo toko nusantara" style="max-height: 25px;"></div>
+        <div class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="logo toko nusantara"
+                style="max-height: 25px;"></div>
         <div class="nav-link">
             {% block navbar %}
-                
+
             {% endblock %}
             <!-- <a href="/home" class="link-list ">Home</a>
             <a href="/dashboard" class="link-list">Dashboard</a>
@@ -54,8 +55,28 @@
     </nav>
 
     {% block konten %}
-        
+
     {% endblock %}
+    <div class="container">
+        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+            <div class="col-md-4 d-flex align-items-center">
+                <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">
+                </a>
+
+            </div>
+            <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
+            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
+                            style="color: #f457c3;"></i></a></li>
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
+                            style="color: #eb2424;"></i></a></li>
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
+                            style="color: #0b53d0;"></i></a></li>
+
+            </ul>
+        </footer>
+    </div>
     <!-- Bootstrap JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
         integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">
@@ -63,26 +84,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
         integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous">
         </script>
+
 </body>
-<div class="container">
-    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <div class="col-md-4 d-flex align-items-center">
-            <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">
-            </a>
 
-        </div>
-        <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
-        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
-                        style="color: #f457c3;"></i></a></li>
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
-                        style="color: #eb2424;"></i></a></li>
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
-                        style="color: #0b53d0;"></i></a></li>
-
-        </ul>
-    </footer>
-</div>
 
 </html>
