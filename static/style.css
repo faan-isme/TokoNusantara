@@ -27,12 +27,20 @@
 }
 
 .c-item {
-    height:280px;
-  }
+    height: 280px;
+}
 
-  .c-img {
+.c-img {
     height: 100%;
     object-fit: cover;
     filter: brightness(0.6);
 
-  }
+}
+
+.nav-active {
+    color: green !important;
+    border: none;
+    border-bottom: 3px solid green;
+    border-radius: 0;
+    outline: none;
+}
