@@ -128,12 +128,14 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+        user_id = payload['id']
+        
         if user_role == 'customer':
             return render_template('homeCustomer.html', username=payload['username'])
         elif user_role == 'seller':
-            # Mengambil data produk dari DB
-            products = db.produk.find({"toserbaname": payload['toserbaname']})
-            return render_template('homeSeller2.html', toserbaname=payload['toserbaname'], products=products)
+
+            db.produk.find({'seller_id':user_id})
+            return render_template('seller/homeSeller.html')
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -348,6 +350,8 @@ def inputBarang():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+        seller_id=payload['id']
+        toserbaname = payload['toserbaname']
         if user_role == 'seller':
             namaBarang = request.form['namaBarang']
             kategori = request.form['kategori']
@@ -367,7 +371,9 @@ def inputBarang():
                 'jumlah':jumlah,
                 'harga':harga,
                 'desc':desc,
-                'foto':file_path
+                'foto':file_path,
+                'seller_id':seller_id,
+                'toserbaname':toserbaname
             }
             db.produk.insert_one(doc)
             return render_template('seller/homeSeller.html',msg='Input barang berhasil!')
