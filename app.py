@@ -15,13 +15,11 @@ USER_UPLOAD_FOLDER = 'static/profile_pics'
 PRODUCT_UPLOAD_FOLDER = 'static/foto_produk'
 
 app = Flask(__name__)
-# dotenv_path = join(dirname(__file__),'.env')
-# load_dotenv(dotenv_path)
-# SECRET_KEY = os.environ.get('SECRET_KEY')
-# MONGODB_CONNECTION_STRING = os.environ.get('MONGODB_CONNECTION_STRING')
+dotenv_path = join(dirname(__file__),'.env')
+load_dotenv(dotenv_path)
+SECRET_KEY = os.environ.get('SECRET_KEY')
+MONGODB_CONNECTION_STRING = os.environ.get('MONGODB_CONNECTION_STRING')
 
-SECRET_KEY='manjaro'
-MONGODB_CONNECTION_STRING='mongodb+srv://tokonusantara:manjaro@cluster0.5s9mqty.mongodb.net/?retryWrites=true&w=majority'
 
 client = MongoClient(MONGODB_CONNECTION_STRING)
 db = client.toknus
@@ -140,7 +138,8 @@ def home():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-        
+    
+#route profile 
 @app.route('/profile')
 def profile():
     token_receive = request.cookies.get('token')
@@ -163,7 +162,7 @@ def profile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-        
+# route edit profile
 @app.route('/profile/edit', methods=['POST'])
 def editProfile():
     token_receive = request.cookies.get('token')
@@ -280,24 +279,73 @@ def editProfile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-    
-# fungsi update foto
-def uploadfoto(profile_receive,user_id,new_doc):
-    filename = secure_filename(profile_receive.filename)
-    extension = filename.split(".")[-1]
-    file_path = f"profile_pics/{user_id}.{extension}"
 
-    profile_receive.save("./static/" + file_path)
-    new_doc["profile_pic_real"] = file_path
-    return new_doc
 
-def upload_product_photo(product_photo, product_id):
-    filename = secure_filename(product_photo.filename)
-    extension = filename.split(".")[-1]
-    file_path = os.path.join("static", "foto_produk", f"{product_id}.{extension}")
+# route jual
+@app.route('/jual', methods=['POST'])
+def jual():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            data_list = request.json
+            # for item in data_list:
+            #     id = item['id']
+            #     nama= item['nama']
+            #     jumlah= int(item['jumlah'])
+            #     tanggal= item['tanggal']
+            #     print(id,jumlah,nama,tanggal)
+            # cek id barang valid
+            for item in data_list:
+                id_obj =ObjectId(id)
+                result = db.produk.find_one({'_id':id_obj})
+                if not result:
+                    return jsonify(
+                        {
+                            "result": "fail",
+                            
+                        }
+                    )
+            # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
+            for item in data_list:
+                # tambahkan id barang
+                id = item['id']
+                nama= item['nama']
+                jumlah= int(item['jumlah'])
+                tanggal= item['tanggal']
+                print(id,jumlah,nama)
+                # cari jumlah produk
+                produk = db.produk.find_one({'_id':id_obj})
+                stok = produk.get('jumlah')
+                # update stok
+                updatestok = stok-item['jumlah']
+                db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
+                # masukkan ke hostori transaksi
+                doc ={
+                    'tanggal':tanggal,
+                    'namaitem':nama,
+                    'jumlah':jumlah,
+                }
+                db.histori.insert_one(doc)
+            
+            
+            return jsonify(
+                {
+                    "result": "success",
+                    
+                }
+            )
 
-    product_photo.save("./static/" + file_path)
-    return file_path
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+        
+
+
 
 # route to handle the insertion of data into the "produk" collection
 @app.route('/post_produk', methods=['POST'])
@@ -321,9 +369,28 @@ def post_produk():
 def sidebar():
     return render_template('sidebar.html')
 
+#route dashboard  
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template('seller/dashboard.html')
 
+# fungsi update foto
+def uploadfoto(profile_receive,user_id,new_doc):
+    filename = secure_filename(profile_receive.filename)
+    extension = filename.split(".")[-1]
+    file_path = f"profile_pics/{user_id}.{extension}"
+
+    profile_receive.save("./static/" + file_path)
+    new_doc["profile_pic_real"] = file_path
+    return new_doc
+
+def upload_product_photo(product_photo, product_id):
+    filename = secure_filename(product_photo.filename)
+    extension = filename.split(".")[-1]
+    file_path = os.path.join("static", "foto_produk", f"{product_id}.{extension}")
+
+    product_photo.save("./static/" + file_path)
+    return file_path
+  
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
