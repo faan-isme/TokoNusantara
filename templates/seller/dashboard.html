@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %} Dashboard - Toko Nusantara {% endblock %}
+
+{% block style %}
+<style>
+    .navbar a {
+        float: left;
+        display: block;
+        color: #070707;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+
+
+
+
+    section {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .search {
+        --padding: 14px;
+
+        width: max-content;
+        display: flex;
+
+        align-items: center;
+        padding: var(--padding);
+        padding: 8px;
+        border-radius: 28px;
+        background: #f6f6f6;
+        transition: box-shadow 0.25;
+    }
+
+    .search:focus-within {
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.75);
+    }
+
+    .search-input {
+        font-size: 16px;
+        font-family: 'Lexend', sans-serif;
+        color: #333333;
+        margin-left: var(--padding);
+        outline: none;
+        border: none;
+        background: transparent;
+        width: 350px;
+        flex: 1;
+    }
+
+    .search-input::placeholder,
+    .search-icon {
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    .search-input::placeholder {
+        text-align: center;
+    }
+
+    .search-input {
+        justify-content: center;
+    }
+
+    .collection .btn-secondary {
+        margin-right: 20px;
+        padding-top: 10px;
+        margin-top: 50px;
+        width: 50px;
+    }
+
+    .mycards {
+        margin: 20px auto;
+        max-width: 75rem;
+    }
+
+    .card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+    }
+
+    .card .btn-secondary {
+        border-radius: 10px;
+        width: 150px;
+        margin-top: 20px;
+        padding-top: 5px;
+    }
+
+    .main-footer {
+        margin-top: 50px;
+    }
+
+    .table-striped {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .wider-column {
+        /* Set the desired width for the left column */
+        width: 50%;
+    }
+</style>
+{% endblock %}
+{% block navbar %}
+<a href="/home" class="link-list ">Home</a>
+<a href="/dashboard" class="link-list nav-active">Dashboard</a>
+<a href="profile" class="link-list">Profile</a>
+{% endblock %}
+
+
+
+{% block konten %}
+<div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" aria-current="true"
+            aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+
+    <div class="carousel-inner">
+        <div class="carousel-item active c-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                class="d-block w-100 c-img" alt="Slide 1">
+            <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+            </div>
+        </div>
+        <div class="carousel-item c-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                class="d-block w-100 c-img" alt="Slide 2">
+            <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+            </div>
+        </div>
+        <div class="carousel-item c-item">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                class="d-block w-100 c-img" alt="Slide 3">
+            <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+<div class="container">
+    <h2 style="text-align:center;">Daftar Produk</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col" class="wider-column">Produk</th>
+                <th scope="col">Harga</th>
+                <th scope="col">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Indomie</td>
+                <td>3.000.000</td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td>Elpiji 3kg</td>
+                <td>18.000</td>
+                <td>30</td>
+            </tr>
+            <tr>
+                <td>Minyak Goreng</td>
+                <td>17.000</td>
+                <td>60</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="container">
+    <h2 style="text-align:center;">Histori Transaksi</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Tanggal</th>
+                <th scope="col" class="wider-column">Produk</th>
+                <th scope="col">Jumlah</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>12-1-2023</td>
+                <td>Indomie</td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td>30-11-2023</td>
+                <td>Elpiji</td>
+                <td>30</td>
+            </tr>
+            <tr>
+                <td>25-10-2023</td>
+                <td>Minyak Goreng</td>
+                <td>60</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+

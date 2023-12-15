@@ -9,6 +9,8 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, m
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from bson import ObjectId
+import shortuuid
+
 
 # Set the directories for uploaded photos
 USER_UPLOAD_FOLDER = 'static/profile_pics'
@@ -290,13 +292,6 @@ def jual():
         user_role = payload['role']
         if user_role == 'seller':
             data_list = request.json
-            # for item in data_list:
-            #     id = item['id']
-            #     nama= item['nama']
-            #     jumlah= int(item['jumlah'])
-            #     tanggal= item['tanggal']
-            #     print(id,jumlah,nama,tanggal)
-            # cek id barang valid
             for item in data_list:
                 id_obj =ObjectId(id)
                 result = db.produk.find_one({'_id':id_obj})
@@ -345,25 +340,44 @@ def jual():
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
 
-
-
-# route to handle the insertion of data into the "produk" collection
-@app.route('/post_produk', methods=['POST'])
-def post_produk():
+    
+# input produk
+@app.route('/inputBarang', methods=['POST'])
+def inputBarang():
+    token_receive = request.cookies.get('token')
     try:
-        data = request.get_json()
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            namaBarang = request.form['namaBarang']
+            kategori = request.form['kategori']
+            jumlah = request.form['jumlah']
+            harga = request.form['harga']
+            foto = request.files['foto']
+            desc = request.form['desc']
+            
+            filename = secure_filename(foto.filename)
+            extension = filename.split(".")[-1]
+            uniqename=shortuuid.uuid()
+            file_path = f"foto_produk/{uniqename}.{extension}"
+            foto.save("./static/" + file_path)
+            doc={
+                'namaBarang':namaBarang,
+                'kategori':kategori,
+                'jumlah':jumlah,
+                'harga':harga,
+                'desc':desc,
+                'foto':file_path
+            }
+            db.produk.insert_one(doc)
+            return render_template('seller/homeSeller.html',msg='Input barang berhasil!')
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
-        product_photo = request.files.get('product_photo')
-
-        if product_photo:
-            product_id = data.get('product_id')
-            data['product_photo'] = upload_product_photo(product_photo, product_id)
-        # Insert data into the "produk" collection
-        db.produk.insert_one(data)
-
-        return jsonify({"success": True, "message": "Data posted successfully"})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
 
 @app.route('/sidebar')
 def sidebar():

@@ -3,7 +3,7 @@
 {% block title %}Home - Toko Nusantara{% endblock %}
 
 {% block navbar %}
-<a href="/home" class="link-list active">Home</a>
+<a href="/home" class="link-list nav-active">Home</a>
 <a href="/dashboard" class="link-list">Dashboard</a>
 <a href="/profile" class="link-list ">Profile</a>
 {% endblock %}
@@ -61,6 +61,7 @@
     if (dataCart.includes(itemName)) {
       editItem(ids[1]);
     } else {
+      var item_id =card.data('idbarang');
       var itemPrice = parseFloat(card.data('price'));
       var jml = $('#quantityInput-' + ids[1]).val();
       var table = document.getElementById('cart').getElementsByTagName('tbody')[0];
@@ -78,9 +79,9 @@
       cell1.innerHTML = nomor;
       cell2.innerHTML = itemName;
       cell3.innerHTML = 'Rp ' + itemPrice.toFixed(2);
-      cell4.innerHTML = '<input type="number" id="edit-' + ids[1] + '" style="width:30px; border:unset" min="1" value="' + jml + '" onchange="updateTotal(this)">';
+      cell4.innerHTML = '<input type="number" id="edit-' + ids[1] + '" style="width:30px; border:unset" min="1" data-idbarang="'+item_id+'" value="' + jml + '" onchange="updateTotal(this)">';
       cell5.innerHTML = 'Rp ' + itemPrice.toFixed(2);
-      cell6.innerHTML = '<button class="edit-btn" onclick="editItem(' + ids[1] + ')">Edit</button> <button class="delete-btn" onclick="deleteItem(this)">Hapus</button>';
+      cell6.innerHTML = '<button class="edit-btn btn btn-warning" onclick="editItem(' + ids[1] + ')" style="width: 50px;"><i class="fa-solid fa-pen-to-square fa-lg" style="color: #ffffff;"></i></button> <button class="delete-btn btn btn-danger" onclick="deleteItem(this)" style="width: 50px"><i class="fa-solid fa-trash-can fa-lg" style="color: #ffffff;"></i></button>';
 
       updateTotal();
       showCart();
@@ -139,12 +140,16 @@
   function jualCart(){
     var table = $('#cart');
     var dataCart = [];
+    let today = new Date().toISOString()
     table.find('tr').each(function () {
       var nama = $(this).find('td:eq(1)').text();
       var jumlah = $(this).find('td:eq(3) input').val();
+      var id = $(this).find('td:eq(3) input').data('idbarang')
       new_data ={
+        id:id,
         nama:nama,
-        jumlah:jumlah
+        jumlah:jumlah,
+        tanggal:today
       }
       if (jumlah){
        dataCart.push(new_data); 
@@ -226,6 +231,7 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+  
 </style>
 {% endblock %}
 
@@ -276,7 +282,7 @@
 
 <div class="button mt-3">
   <div class="d-flex justify-content-around mb-8">
-    <button class="btn btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#inputProduct">Input
+    <button class="btn btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#inputProduct" style="color: white;">Input
       Produk</button>
   </div>
 </div>
@@ -285,7 +291,8 @@
 </div>
 <!-- table -->
 <div class=" container table-responsive-md">
-  <table class="table d-none" id="cart">
+  <table class="table d-none" id="cart" style="table-layout: fixed;
+  width: 100%;">
     <thead>
       <tr>
         <th scope="col">No</th>
@@ -332,7 +339,7 @@
           </div>
           <div class="mb-3">
             <label for="kategori" class="form-label">Kategori</label>
-            <select class="form-select" id="kategori" aria-label="dropdown kategori" required>
+            <select class="form-select" id="kategori" name="kategori" aria-label="dropdown kategori" required>
               <option selected>--pilih--</option>
               <option value="Elektronik">Elektronik</option>
               <option value="Kebersihan">Kebersihan</option>
@@ -371,8 +378,8 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
-        <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
+        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan</button>
       </div>
     </div>
   </div>
@@ -408,7 +415,7 @@
             <button class="btn btn-secondary" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
             <button class="btn btn-secondary d-none" id="jualCart-{{ loop.index }}" data-name="{{item['nama']}}"
-              data-price="{{item['harga']}}" data-id-barang="{{item['_id']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
+              data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
             <button class="btn btn-secondary" id="tambah-{{ loop.index }}" style="width:100px"
               onclick="showInputJml(this.id)">Tambah</button>
             <button class="btn btn-secondary d-none" id="update-{{ loop.index }}" style="width:100px d-none"
@@ -420,11 +427,11 @@
       </div>
     </div>
     {% endfor %}
-    <div class="col mb-3">
-      <div class="card h-100">
-        <img
-          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAP8AAADFCAMAAACsN9QzAAAAMFBMVEXQ0NDw8PDX19fU1NTn5+fl5eXt7e3q6urY2Nju7u7Ozs7e3t7g4ODy8vLi4uLb29uNTQONAAAFDElEQVR4nO2d6YKqMAyFpaxeRN//ba+MIordkqbQmJyfQ1vznbZhaWFOJ9Gqjw7gYCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bCm/bKXw12a4jeN4M4xNxIc+XJqummad++uNMKRdheT/V7d3+OqpuwXNQBvXXkLyj131qalqaQPbSSj+up2qL00dxzSAirmx4N8N6A11dPmF4b9a8WcD+I0ARMSjnX5Wy84AeMCmc3T/LHbnQTi/LffxzYHgeM3ZjX83YMwRZEaB+S+e7p9T4L8cUeYTmL/38lcTswkADbf247ObAFD+IcR/zRJmNkH5xxB/wysBQPn96Y9fAlR+mKSP/2D+a3+bX/r577R98LPlZ/YMAMzvuvl/quM1/OH8g7/7LzmCzCgwv/XZ39r9zC7/Eff/N08GYNf9mOdfVzd+w637Uc8/7Y9/59HPLPmfcPy1/RnA1LF7+odd/7CNgOnMcQkMN2HvJ4GtAyxXP/Drv0P/AV91zK57F+ET9q3pz3/L33f4nt15b1HS/ofb5dq21+vIceI/xe6ETSzlly3lly3lly3lly3lly3lly3lly3lly3lL1H7PU4skr/d72WSAvnnFeZpr5305fE/Ftj3MqA8/uf+gqnZ5deK439tr5h2yQGl8bdvq2p7GFAW/+fC8h7bKYri3+4t2iEJFsX/ta0gfw4oid+ysyy7AeXwWzeVZM8BxfC79hVmzgGl8Nt7P/8IKIXfiZ85BxTC3zrpZ2U0oAh+9+DPPgVK4Pdvqc5rQAn8gd5/GJDptwvgD/b+nwGZcsDh/HUTQZ9vChzNH0p9uQ04mD8eP5MBB/MD8PMkwWP5o1LfmwH0SfBIfsjgX0YAdby07ZkroD04fgYDSJszPSC+2BNfXgMoW5vfC4qPD9H7GQwgbKx+fBgpLj7M4H+K1AC6tpbvQkV1UAI+7Qgga8q8XoqLiC8Fn9YAqpZMD4kvCZ/UAKKG6g6ycJOIT2kATTv15ptw3vjSBj+xASTNmK8XYj3xUeDTGUDRiukB8dHgkxlA0IgN3x0fET6VAeltbOf+S7b4qHqfzIDkJtyfw7R8DpUSn8aA1Ba+U58nPlp8EgMSG7DPfUd81PgUBqTVd3wJwhEfOT6BAUnVnanPFh9971MYkFLb+yXgbXx58JMNSKjsn/uv+B5ngVz4qQbg68bhL/EFEsVhBqCrhuf+e3zZej/VAGxNU8UTTX3G3v/7AbwByIqxg38n4Q3A1fNd9R0itAGoaoX1/iysAZha9bmw3p+FNABRKeay5wDhDIDXGUqb+4tQBoCrFDj3F2H+/wq0Rh34/u2hQowAYIUiU98q+AiAlR/KTH2rwCMAVLzY1LcKagCkdKEnvk8BpwBkv0rZc38RzID4spA7vkMFMiC6aPGpbxXEgNiSjPBBBkQWZJH6VsUbEFeOzdxfFG1AVDFWg/+h2M8xx/AzxI8eARGFWOLHGhAuY3hc9nwryoBgEXapb1VMDgjxDyXf74cUYUCAnzV+zBTwH2ea+lYFDfAeNkeHn66QAb6jA9fM/65ADvDwM5/7i/wGuPl/BD8wBZyH/P/nmJV8BriO/EDqW+WZAg7+nxn8D7kNsPOzP+9v5TTAyv9z+O4cYPsr41setxwGWPkH84MaovklSfllS/llS/llS/llS/llS/llS/llS/llq/4Pyu5AznGi3bUAAAAASUVORK5CYII="
-          class="card-img-top" alt="...">
+    <!-- example card -->
+    <div class="col mb-3" >
+      <div class="card h-100 " >
+        <img src="{{url_for('static', filename='img/mie.jpg')}}" class="card-img-top" alt="...">
+       
         <div class="card-body">
           <h5 class="card-title">Mie Goreng</h5>
           <p class="card-text">Rp 5.000</p>
@@ -442,15 +449,50 @@
 
           <!-- tombol lihat -->
           <div class="d-flex justify-content-around mb-2">
-            <button class="btn btn-secondary" id="jual-1" onclick="showInputJml(this.id)"
+            <button class="btn btn-outline-success" id="jual-1" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
-            <button class="btn btn-secondary d-none" id="jualCart-1" data-name="Mie Goreng" data-price="5000"
+            <button class="btn btn-success d-none" id="jualCart-1" data-name="Mie Goreng" data-price="5000" data-idbarang="78131uyer726r"
               onclick="addItem(this.id)" style="width:100px">Jual</button>
-            <button class="btn btn-secondary" id="tambah-1" style="width:100px"
+            <button class="btn btn-outline-primary" id="tambah-1" style="width:100px"
               onclick="showInputJml(this.id)">Tambah</button>
-            <button class="btn btn-secondary d-none" id="update-1" style="width:100px d-none"
+            <button class="btn btn-primary d-none" id="update-1" style="width:100px; "
               onclick="update(this.id)">Update</button>
-            <button class="btn btn-secondary d-none" id="batal-1" onclick="hideInputJml(this.id)"
+            <button class="btn btn-outline-danger d-none" id="batal-1" onclick="hideInputJml(this.id)"
+              style="width:100px">Batal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col mb-3">
+      <div class="card h-100  " >
+        <img src="{{url_for('static', filename='img/minyak.jpg')}}" class="card-img-top" alt="...">
+        <div class="card-body">
+          <h5 class="card-title">Minyak Goreng Bimoli 250ml</h5>
+          <p class="card-text">Rp 7.000</p>
+          <div class="d-flex justify-content-center">
+            <p>10pcs</p>
+          </div>
+          <!-- input jml -->
+          <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-2">
+            <div class="border">
+              <button class="border border-0" id="dec-2" style="width: 30px;" onclick="decrement(this.id)">-</button>
+              <input class="text-center border border-0" type="number" id="quantityInput-2" value="1">
+              <button class="border border-0" id="inc-2" style="width: 30px;" onclick="increment(this.id)">+</button>
+            </div>
+          </div>
+
+          <!-- tombol lihat -->
+          <div class="d-flex justify-content-around mb-2">
+            <button class="btn btn-secondary" id="jual-2" onclick="showInputJml(this.id)"
+              style="width:100px">Jual</button>
+            <button class="btn btn-secondary d-none" id="jualCart-2" data-name="Minyak Goreng Bimoli 250ml" data-price="7000" data-idbarang="78131uyer72gdh"
+              onclick="addItem(this.id)" style="width:100px">Jual</button>
+            <button class="btn btn-secondary" id="tambah-2" style="width:100px"
+              onclick="showInputJml(this.id)">Tambah</button>
+            <button class="btn btn-secondary d-none" id="update-2" style="width:100px"
+              onclick="update(this.id)">Update</button>
+            <button class="btn btn-secondary d-none" id="batal-2" onclick="hideInputJml(this.id)"
               style="width:100px">Batal</button>
           </div>
         </div>
