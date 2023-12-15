@@ -52,6 +52,10 @@ def login():
                 # the token will be valid for 24 hours
                 "exp": datetime.utcnow() + timedelta(seconds=60 * 60 * 24),
             }
+            if role == 'customer':
+                payload['username'] = result.get('username')
+            elif role == 'seller':
+                payload['toserbaname'] = result.get('toserbaname') 
             token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
             response = make_response(redirect(url_for('home')))
             response.set_cookie('token', token)
@@ -118,9 +122,12 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+        user_id = payload['id']
+        
         if user_role == 'customer':
             return render_template('homeCustomer.html')
         elif user_role == 'seller':
+            db.produk.find({'seller_id':user_id})
             return render_template('seller/homeSeller.html')
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
@@ -334,6 +341,8 @@ def inputBarang():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+        seller_id=payload['id']
+        toserbaname = payload['toserbaname']
         if user_role == 'seller':
             namaBarang = request.form['namaBarang']
             kategori = request.form['kategori']
@@ -353,7 +362,9 @@ def inputBarang():
                 'jumlah':jumlah,
                 'harga':harga,
                 'desc':desc,
-                'foto':file_path
+                'foto':file_path,
+                'seller_id':seller_id,
+                'toserbaname':toserbaname
             }
             db.produk.insert_one(doc)
             return render_template('seller/homeSeller.html',msg='Input barang berhasil!')

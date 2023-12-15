@@ -81,8 +81,8 @@
         // Function to toggle fields based on user type
         function toggleFields(userType) {
             // Update navbar active state
-            $('.navbar a').removeClass('active');
-            $('#' + userType + 'Link').addClass('active');
+            $('.navbar a').removeClass('nav-active');
+            $('#' + userType + 'Link').addClass('nav-active');
 
         }
     });
@@ -233,7 +233,7 @@
 {% block navbar %}
 <a href="/home" class="link-list ">Home</a>
 <a href="/dashboard" class="link-list">Dashboard</a>
-<a href="#" class="link-list nav-active">Profile</a>
+<a href="#" class="link-list nav-active ">Profile</a>
 {% endblock %}
 
 {% block konten %}
@@ -288,7 +288,7 @@
         </div>
         <div class="container d-flex justify-content-center">
             <div class="navbar">
-                <a href="#" id="SemuaLink" class="myswitch active mx-2">Semua</a>
+                <a href="#" id="SemuaLink" class="myswitch nav-active mx-2">Semua</a>
                 <a href="#" id="SembakoLink" class="myswitch mx-2">Sembako</a>
                 <a href="#" id="SabunLink" class="myswitch mx-2">Parabot</a>
                 <a href="#" id="LainLink" class="myswitch mx-2">Lain - lain</a>
