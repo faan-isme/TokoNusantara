@@ -394,10 +394,10 @@
       <div class="card h-100">
         <img src="{{url_for('static', filename=item['foto'])}}" class="card-img-top" alt="...">
         <div class="card-body">
-          <h5 class="card-title">{{item['nama']}}</h5>
+          <h5 class="card-title">{{item['namaBarang']}}</h5>
           <p class="card-text">Rp {{item['harga']}}</p>
           <div class="d-flex justify-content-center">
-            <p>{{item['Jumlah']}}pcs</p>
+            <p>{{item['jumlah']}}pcs</p>
           </div>
           <!-- input jml -->
           <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-{{ loop.index }}">
@@ -412,22 +412,22 @@
 
           <!-- tombol lihat -->
           <div class="d-flex justify-content-around mb-2">
-            <button class="btn btn-secondary" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
+            <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
-            <button class="btn btn-secondary d-none" id="jualCart-{{ loop.index }}" data-name="{{item['nama']}}"
+            <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
               data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
-            <button class="btn btn-secondary" id="tambah-{{ loop.index }}" style="width:100px"
+            <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
               onclick="showInputJml(this.id)">Tambah</button>
-            <button class="btn btn-secondary d-none" id="update-{{ loop.index }}" style="width:100px d-none"
+            <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
               onclick="update(this.id)">Update</button>
-            <button class="btn btn-secondary d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
+            <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
               style="width:100px">Batal</button>
           </div>
         </div>
       </div>
     </div>
     {% endfor %}
-    <!-- example card -->
+    <!-- example card
     <div class="col mb-3" >
       <div class="card h-100 " >
         <img src="{{url_for('static', filename='img/mie.jpg')}}" class="card-img-top" alt="...">
@@ -438,7 +438,7 @@
           <div class="d-flex justify-content-center">
             <p>100pcs</p>
           </div>
-          <!-- input jml -->
+          
           <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-1">
             <div class="border">
               <button class="border border-0" id="dec-1" style="width: 30px;" onclick="decrement(this.id)">-</button>
@@ -447,7 +447,7 @@
             </div>
           </div>
 
-          <!-- tombol lihat -->
+          
           <div class="d-flex justify-content-around mb-2">
             <button class="btn btn-outline-success" id="jual-1" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
@@ -462,42 +462,9 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div class="col mb-3">
-      <div class="card h-100  " >
-        <img src="{{url_for('static', filename='img/minyak.jpg')}}" class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">Minyak Goreng Bimoli 250ml</h5>
-          <p class="card-text">Rp 7.000</p>
-          <div class="d-flex justify-content-center">
-            <p>10pcs</p>
-          </div>
-          <!-- input jml -->
-          <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-2">
-            <div class="border">
-              <button class="border border-0" id="dec-2" style="width: 30px;" onclick="decrement(this.id)">-</button>
-              <input class="text-center border border-0" type="number" id="quantityInput-2" value="1">
-              <button class="border border-0" id="inc-2" style="width: 30px;" onclick="increment(this.id)">+</button>
-            </div>
-          </div>
-
-          <!-- tombol lihat -->
-          <div class="d-flex justify-content-around mb-2">
-            <button class="btn btn-secondary" id="jual-2" onclick="showInputJml(this.id)"
-              style="width:100px">Jual</button>
-            <button class="btn btn-secondary d-none" id="jualCart-2" data-name="Minyak Goreng Bimoli 250ml" data-price="7000" data-idbarang="78131uyer72gdh"
-              onclick="addItem(this.id)" style="width:100px">Jual</button>
-            <button class="btn btn-secondary" id="tambah-2" style="width:100px"
-              onclick="showInputJml(this.id)">Tambah</button>
-            <button class="btn btn-secondary d-none" id="update-2" style="width:100px"
-              onclick="update(this.id)">Update</button>
-            <button class="btn btn-secondary d-none" id="batal-2" onclick="hideInputJml(this.id)"
-              style="width:100px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div>
+   
 
 
   </div>
