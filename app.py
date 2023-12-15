@@ -266,7 +266,35 @@ def editProfile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+@app.route('/jual', methods=['POST'])
+def jual():
+    data_list = request.json
+    # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
+    for item in data_list:
+        # tambahkan id barang
+        id = item['id']
+        id_obj =ObjectId(id)
+        db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': item['jumlah']}})
+        nama_makanan = item['nama']
+        jumlah_makanan = item['jumlah']
+        print(nama_makanan,jumlah_makanan)
+    print(type(data_list))
+    return jsonify(
+            {
+                "result": "success",
+                
+            }
+        )
+    # try:
+    #     data_jual = request.form['dataJual']
+    #     # Process data_jual here
+    #     return 'Success', 200
+    # except KeyError:
+    #     return 'Invalid request - missing dataJual', 400  
     
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html') 
 # fungsi update foto
 def uploadfoto(profile_receive,user_id,new_doc):
     filename = secure_filename(profile_receive.filename)

@@ -17,6 +17,7 @@
     // Melakukan pengiriman formulir secara manual
     $('#formInputProduct').submit();
   }
+  //reset modal form input barang
   function reset() {
     $('#namaBarang').val('');
     $('#kategori').val('');
@@ -29,7 +30,6 @@
   function update(id) {
     id = id.split('-');
     var jumlah = $('#quantityInput-' + id[1]).val();
-    console.log(jumlah);
     $.ajax({
       type: "POST",
       url: "/updateJml",
@@ -42,7 +42,7 @@
       }
     })
   }
-
+  //menambah item ke cart
   function addItem(id) {
     var card = $('#' + id);
     var table = $('#cart');
@@ -56,7 +56,7 @@
       return dataCart;
     });
 
-    console.log(dataCart);
+   
     //cek data di cart
     if (dataCart.includes(itemName)) {
       editItem(ids[1]);
@@ -128,6 +128,42 @@
     } else {
       cartTable.addClass('d-none'); // Menambahkan kelas 'd-none' jika tidak ada item
     }
+  }
+  function hideCart(){
+    //sembuntukan cart table
+    $('#cart').addClass('d-none');
+    // Menghapus semua elemen dalam tbody
+    $('#cart tbody').empty();
+  }
+  //jual barang yang ada di cart
+  function jualCart(){
+    var table = $('#cart');
+    var dataCart = [];
+    table.find('tr').each(function () {
+      var nama = $(this).find('td:eq(1)').text();
+      var jumlah = $(this).find('td:eq(3) input').val();
+      new_data ={
+        nama:nama,
+        jumlah:jumlah
+      }
+      if (jumlah){
+       dataCart.push(new_data); 
+      }
+      
+    });
+    dataCart=JSON.stringify(dataCart)
+    $.ajax({
+      type: "POST",
+      url: "/jual",
+      contentType: 'application/json',
+      dataType : 'json',
+      data: dataCart,
+      success: function (response) {
+        alert('Data Penjualan Telah di simpan');
+        hideCart();
+        window.location.reload();
+      }
+    })
   }
   function showInputJml(id) {
     id = id.split('-');
@@ -247,6 +283,7 @@
 <div class="container my-3">
   <!-- search -->
 </div>
+<!-- table -->
 <div class=" container table-responsive-md">
   <table class="table d-none" id="cart">
     <thead>
@@ -264,11 +301,14 @@
 
 
     </tbody>
-    <tfoot>
+    <tfoot class="table-group-divider ">
       <tr>
         <td colspan="4"><strong>Total</strong></td>
         <td id="total">Rp 0</td>
         <td></td>
+      </tr>
+      <tr class="border-0 border-top">
+        <td colspan="6" style="text-align: center; border:unset;" ><button class="btn btn-success me-2" style="width: 100px;" onclick="jualCart()">Selesai</button><button class="btn btn-danger ms-2" style="width: 100px;" onclick="hideCart()">Batal</button></td>
       </tr>
     </tfoot>
   </table>
@@ -368,7 +408,7 @@
             <button class="btn btn-secondary" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
             <button class="btn btn-secondary d-none" id="jualCart-{{ loop.index }}" data-name="{{item['nama']}}"
-              data-price="{{item['harga']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
+              data-price="{{item['harga']}}" data-id-barang="{{item['_id']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
             <button class="btn btn-secondary" id="tambah-{{ loop.index }}" style="width:100px"
               onclick="showInputJml(this.id)">Tambah</button>
             <button class="btn btn-secondary d-none" id="update-{{ loop.index }}" style="width:100px d-none"
