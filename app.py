@@ -126,7 +126,8 @@ def home():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-        
+    
+#route profile 
 @app.route('/profile')
 def profile():
     token_receive = request.cookies.get('token')
@@ -149,7 +150,7 @@ def profile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-        
+# route edit profile
 @app.route('/profile/edit', methods=['POST'])
 def editProfile():
     token_receive = request.cookies.get('token')
@@ -266,35 +267,79 @@ def editProfile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+
+# route jual
 @app.route('/jual', methods=['POST'])
 def jual():
-    data_list = request.json
-    # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
-    for item in data_list:
-        # tambahkan id barang
-        id = item['id']
-        id_obj =ObjectId(id)
-        db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': item['jumlah']}})
-        nama_makanan = item['nama']
-        jumlah_makanan = item['jumlah']
-        print(nama_makanan,jumlah_makanan)
-    print(type(data_list))
-    return jsonify(
-            {
-                "result": "success",
-                
-            }
-        )
-    # try:
-    #     data_jual = request.form['dataJual']
-    #     # Process data_jual here
-    #     return 'Success', 200
-    # except KeyError:
-    #     return 'Invalid request - missing dataJual', 400  
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            data_list = request.json
+            # for item in data_list:
+            #     id = item['id']
+            #     nama= item['nama']
+            #     jumlah= int(item['jumlah'])
+            #     tanggal= item['tanggal']
+            #     print(id,jumlah,nama,tanggal)
+            # cek id barang valid
+            for item in data_list:
+                id_obj =ObjectId(id)
+                result = db.produk.find_one({'_id':id_obj})
+                if not result:
+                    return jsonify(
+                        {
+                            "result": "fail",
+                            
+                        }
+                    )
+            # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
+            for item in data_list:
+                # tambahkan id barang
+                id = item['id']
+                nama= item['nama']
+                jumlah= int(item['jumlah'])
+                tanggal= item['tanggal']
+                print(id,jumlah,nama)
+                # cari jumlah produk
+                produk = db.produk.find_one({'_id':id_obj})
+                stok = produk.get('jumlah')
+                # update stok
+                updatestok = stok-item['jumlah']
+                db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
+                # masukkan ke hostori transaksi
+                doc ={
+                    'tanggal':tanggal,
+                    'namaitem':nama,
+                    'jumlah':jumlah,
+                }
+                db.histori.insert_one(doc)
+            
+            
+            return jsonify(
+                {
+                    "result": "success",
+                    
+                }
+            )
+
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+        
     
+   
+  
+#route dashboard  
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html') 
+    return render_template('seller/dashboard.html')
+
+ 
 # fungsi update foto
 def uploadfoto(profile_receive,user_id,new_doc):
     filename = secure_filename(profile_receive.filename)
