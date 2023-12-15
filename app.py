@@ -134,8 +134,9 @@ def home():
             return render_template('homeCustomer.html', username=payload['username'])
         elif user_role == 'seller':
 
-            db.produk.find({'seller_id':user_id})
-            return render_template('seller/homeSeller.html')
+            data = db.produk.find({'seller_id':user_id})
+            return render_template('seller/homeSeller.html',data=data)
+
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -166,6 +167,7 @@ def profile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+
 # route edit profile
 @app.route('/profile/edit', methods=['POST'])
 def editProfile():
