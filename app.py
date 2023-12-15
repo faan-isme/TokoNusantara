@@ -10,11 +10,19 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from bson import ObjectId
 
+# Set the directories for uploaded photos
+USER_UPLOAD_FOLDER = 'static/profile_pics'
+PRODUCT_UPLOAD_FOLDER = 'static/foto_produk'
+
 app = Flask(__name__)
-dotenv_path = join(dirname(__file__),'.env')
-load_dotenv(dotenv_path)
-SECRET_KEY = os.environ.get('SECRET_KEY')
-MONGODB_CONNECTION_STRING = os.environ.get('MONGODB_CONNECTION_STRING')
+# dotenv_path = join(dirname(__file__),'.env')
+# load_dotenv(dotenv_path)
+# SECRET_KEY = os.environ.get('SECRET_KEY')
+# MONGODB_CONNECTION_STRING = os.environ.get('MONGODB_CONNECTION_STRING')
+
+SECRET_KEY='manjaro'
+MONGODB_CONNECTION_STRING='mongodb+srv://tokonusantara:manjaro@cluster0.5s9mqty.mongodb.net/?retryWrites=true&w=majority'
+
 client = MongoClient(MONGODB_CONNECTION_STRING)
 db = client.toknus
 
@@ -50,6 +58,10 @@ def login():
                 # the token will be valid for 24 hours
                 "exp": datetime.utcnow() + timedelta(seconds=60 * 60 * 24),
             }
+            if role == 'customer':
+                payload['username'] = result.get('username')
+            elif role == 'seller':
+                payload['toserbaname'] = result.get('toserbaname') 
             token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
             response = make_response(redirect(url_for('home')))
             response.set_cookie('token', token)
@@ -117,9 +129,11 @@ def home():
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
         if user_role == 'customer':
-            return render_template('homeCustomer.html')
+            return render_template('homeCustomer.html', username=payload['username'])
         elif user_role == 'seller':
-            return render_template('seller/homeSeller.html')
+            # Mengambil data produk dari DB
+            products = db.produk.find({"toserbaname": payload['toserbaname']})
+            return render_template('homeSeller2.html', toserbaname=payload['toserbaname'], products=products)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -142,7 +156,7 @@ def profile():
         if user_role == 'customer':
             return render_template('profileCustomer.html',data=data,msg=msg)
         elif user_role == 'seller':
-            return render_template('seller/profileSeller.html',data=data,msg=msg)
+            return render_template('profileSeller.html',data=data,msg=msg)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -266,45 +280,50 @@ def editProfile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
-@app.route('/jual', methods=['POST'])
-def jual():
-    data_list = request.json
-    # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
-    for item in data_list:
-        # tambahkan id barang
-        id = item['id']
-        id_obj =ObjectId(id)
-        db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': item['jumlah']}})
-        nama_makanan = item['nama']
-        jumlah_makanan = item['jumlah']
-        print(nama_makanan,jumlah_makanan)
-    print(type(data_list))
-    return jsonify(
-            {
-                "result": "success",
-                
-            }
-        )
-    # try:
-    #     data_jual = request.form['dataJual']
-    #     # Process data_jual here
-    #     return 'Success', 200
-    # except KeyError:
-    #     return 'Invalid request - missing dataJual', 400  
     
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html') 
 # fungsi update foto
 def uploadfoto(profile_receive,user_id,new_doc):
     filename = secure_filename(profile_receive.filename)
     extension = filename.split(".")[-1]
     file_path = f"profile_pics/{user_id}.{extension}"
+
     profile_receive.save("./static/" + file_path)
     new_doc["profile_pic_real"] = file_path
     return new_doc
 
-    
+def upload_product_photo(product_photo, product_id):
+    filename = secure_filename(product_photo.filename)
+    extension = filename.split(".")[-1]
+    file_path = os.path.join("static", "foto_produk", f"{product_id}.{extension}")
+
+    product_photo.save("./static/" + file_path)
+    return file_path
+
+# route to handle the insertion of data into the "produk" collection
+@app.route('/post_produk', methods=['POST'])
+def post_produk():
+    try:
+        data = request.get_json()
+
+        product_photo = request.files.get('product_photo')
+
+        if product_photo:
+            product_id = data.get('product_id')
+            data['product_photo'] = upload_product_photo(product_photo, product_id)
+        # Insert data into the "produk" collection
+        db.produk.insert_one(data)
+
+        return jsonify({"success": True, "message": "Data posted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/sidebar')
+def sidebar():
+    return render_template('sidebar.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
