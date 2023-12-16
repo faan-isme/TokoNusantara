@@ -15,7 +15,7 @@
   alert('{{msg}}')
   window.location.href = '/home'
   {% endif %}
-  
+
   function submitForm() {
     let namaBarang = $('#namaBarang');
     let kategori = $('#kategori');
@@ -26,15 +26,15 @@
 
     if (!is_name(namabarang)) {
       $('#info-namaBarang')
-          .text('Hanya masukkan angka dan huruf, minimal 3 karakter Maksimal 20 karakter !')
-          .removeClass('d-none');
+        .text('Hanya masukkan angka dan huruf, minimal 3 karakter Maksimal 20 karakter !')
+        .removeClass('d-none');
       $("#namaBarang").focus();
       return;
     }
     $('#formInputProduct').submit();
     reset();
     //$('#submitInputProduct').prop('disabled', true);
-    
+
   }
   //reset modal form input barang
   function reset() {
@@ -51,13 +51,12 @@
     id = id.split('-');
     var jumlah = $('#quantityInput-' + id[1]).val();
     var item_id = card.data('idbarang');
-    console.log(jumlah,item_id)
     $.ajax({
       type: "POST",
       url: "/updateJml",
       data: {
-        id:item_id,
-        jumlah:jumlah
+        id: item_id,
+        jumlah: jumlah
       },
       success: function (response) {
 
@@ -163,7 +162,7 @@
   function jualCart() {
     var table = $('#cart');
     var dataCart = [];
-    let today = new Date().toISOString()
+    let today = new Date().toISOString().split('T')[0];
     table.find('tr').each(function () {
       var nama = $(this).find('td:eq(1)').text();
       var jumlah = $(this).find('td:eq(3) input').val();
@@ -402,59 +401,72 @@
             <p id="info-deskripsi" class="text-danger d-none"></p>
           </div>
           <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
-          <button type="submit" id="submitInputProduct" class="btn btn-primary" onclick="submitForm()" >Simpan</button>
+          <button type="submit" id="submitInputProduct" class="btn btn-primary" onclick="submitForm()">Simpan</button>
         </form>
       </div>
       <div class="modal-footer">
-        
+
       </div>
     </div>
   </div>
 </div>
 <!-- card container -->
 <div class="container-lg mt-5">
-  <div class="row row-cols-1 row-cols-md-4 g-10" id="cardcontainer">
-    <!-- setiap id tambahkan nomer berdasarkan iterasi -->
-    <!-- card barang -->
-    {% for item in data %}
-    <div class="col mb-3">
-      <div class="card h-100">
-        <img src="{{url_for('static', filename=item['foto'])}}" class="card-img-top" alt="...">
-        <div class="card-body">
-          <h5 class="card-title">{{item['namaBarang']}}</h5>
-          <p class="card-text">Rp {{item['harga']}}</p>
-          <div class="d-flex justify-content-center">
-            <p>{{item['jumlah']}}pcs</p>
-          </div>
-          <!-- input jml -->
-          <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-{{ loop.index }}">
-            <div class="border">
-              <button class="border border-0" id="dec-{{ loop.index }}" style="width: 30px;"
-                onclick="decrement(this.id)">-</button>
-              <input class="text-center border border-0" type="number" id="quantityInput-{{ loop.index }}" value="1">
-              <button class="border border-0" id="inc-{{ loop.index }}" style="width: 30px;"
-                onclick="increment(this.id)">+</button>
+  
+    
+    {% set data_list = data|list %}
+    {% if data_list|length == 0 %}
+        <div class="col mb-3">
+          <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
+        </div>
+        
+      
+    {% else %}
+    <div class="row row-cols-1 row-cols-md-4 g-10" id="cardcontainer">
+      <!-- setiap id tambahkan nomer berdasarkan iterasi -->
+      <!-- card barang -->
+      {% for item in data_list %}
+      <div class="col mb-3">
+        <div class="card h-100">
+          <img src="{{url_for('static', filename=item['foto'])}}" class="card-img-top" alt="...">
+          <div class="card-body">
+            <h5 class="card-title">{{item['namaBarang']}}</h5>
+            <p class="card-text">Rp {{item['harga']}}</p>
+            <div class="d-flex justify-content-center">
+              <p>{{item['jumlah']}}pcs</p>
             </div>
-          </div>
+            <!-- input jml -->
+            <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-{{ loop.index }}">
+              <div class="border">
+                <button class="border border-0" id="dec-{{ loop.index }}" style="width: 30px;"
+                  onclick="decrement(this.id)">-</button>
+                <input class="text-center border border-0" type="number" id="quantityInput-{{ loop.index }}" value="1">
+                <button class="border border-0" id="inc-{{ loop.index }}" style="width: 30px;"
+                  onclick="increment(this.id)">+</button>
+              </div>
+            </div>
 
-          <!-- tombol lihat -->
-          <div class="d-flex justify-content-around mb-2">
-            <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
-              style="width:100px">Jual</button>
-            <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
-              data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)"
-              style="width:100px">Jual</button>
-            <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
-              onclick="showInputJml(this.id)">Tambah</button>
-            <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
-            data-idbarang="{{item['_id']}}" onclick="update(this.id)">Update</button>
-            <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
-              style="width:100px">Batal</button>
+            <!-- tombol lihat -->
+            <div class="d-flex justify-content-around mb-2">
+              <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
+                style="width:100px">Jual</button>
+              <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
+                data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)"
+                style="width:100px">Jual</button>
+              <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
+                onclick="showInputJml(this.id)">Tambah</button>
+              <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
+                data-idbarang="{{item['_id']}}" onclick="update(this.id)">Update</button>
+              <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
+                style="width:100px">Batal</button>
+            </div>
           </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
+    {% endif %}
+
+  
 </div>
 {% endblock %}
