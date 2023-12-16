@@ -12,11 +12,17 @@ from bson import ObjectId
 import shortuuid
 
 
+# Set the directories for uploaded photos
+USER_UPLOAD_FOLDER = 'static/profile_pics'
+PRODUCT_UPLOAD_FOLDER = 'static/foto_produk'
+
 app = Flask(__name__)
 dotenv_path = join(dirname(__file__),'.env')
 load_dotenv(dotenv_path)
 SECRET_KEY = os.environ.get('SECRET_KEY')
 MONGODB_CONNECTION_STRING = os.environ.get('MONGODB_CONNECTION_STRING')
+
+
 client = MongoClient(MONGODB_CONNECTION_STRING)
 db = client.toknus
 
@@ -126,10 +132,11 @@ def home():
         user_id = payload['id']
         
         if user_role == 'customer':
-            return render_template('homeCustomer.html')
+            return render_template('homeCustomer.html', username=payload['username'])
         elif user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
             return render_template('seller/homeSeller.html',data=data, msg=msg)
+
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -153,7 +160,7 @@ def profile():
         if user_role == 'customer':
             return render_template('profileCustomer.html',data=data,msg=msg)
         elif user_role == 'seller':
-            return render_template('seller/profileSeller.html',data=data,msg=msg)
+            return render_template('profileSeller.html',data=data,msg=msg)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -279,6 +286,7 @@ def editProfile():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
+
 # route jual
 @app.route('/jual', methods=['POST'])
 def jual():
@@ -337,6 +345,7 @@ def jual():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
+
     
 # input produk
 @app.route('/inputBarang', methods=['POST'])
@@ -420,6 +429,7 @@ def updateJml():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+
 
 @app.route('/sidebar')
 def sidebar():
@@ -581,16 +591,24 @@ def hapushistori():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
     
+
 # fungsi update foto
 def uploadfoto(profile_receive,user_id,new_doc):
     filename = secure_filename(profile_receive.filename)
     extension = filename.split(".")[-1]
     file_path = f"profile_pics/{user_id}.{extension}"
+
     profile_receive.save("./static/" + file_path)
     new_doc["profile_pic_real"] = file_path
     return new_doc
 
-    
+def upload_product_photo(product_photo, product_id):
+    filename = secure_filename(product_photo.filename)
+    extension = filename.split(".")[-1]
+    file_path = os.path.join("static", "foto_produk", f"{product_id}.{extension}")
 
+    product_photo.save("./static/" + file_path)
+    return file_path
+  
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
