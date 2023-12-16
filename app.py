@@ -118,6 +118,7 @@ def register():
 # route home
 @app.route('/home')
 def home():
+    msg = request.args.get('msg')
     token_receive = request.cookies.get('token')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
@@ -128,7 +129,7 @@ def home():
             return render_template('homeCustomer.html')
         elif user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
-            return render_template('seller/homeSeller.html',data=data)
+            return render_template('seller/homeSeller.html',data=data, msg=msg)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
@@ -288,7 +289,8 @@ def jual():
         if user_role == 'seller':
             data_list = request.json
             for item in data_list:
-                id_obj =ObjectId(id)
+                
+                id_obj =ObjectId(item['id'])
                 result = db.produk.find_one({'_id':id_obj})
                 if not result:
                     return jsonify(
@@ -304,12 +306,13 @@ def jual():
                 nama= item['nama']
                 jumlah= int(item['jumlah'])
                 tanggal= item['tanggal']
+                id_obj =ObjectId(item['id'])
                 print(id,jumlah,nama)
                 # cari jumlah produk
                 produk = db.produk.find_one({'_id':id_obj})
-                stok = produk.get('jumlah')
+                stok =int(produk.get('jumlah'))
                 # update stok
-                updatestok = stok-item['jumlah']
+                updatestok = str(stok-jumlah)
                 db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
                 # masukkan ke hostori transaksi
                 doc ={
@@ -368,9 +371,51 @@ def inputBarang():
                 'toserbaname':toserbaname
             }
             db.produk.insert_one(doc)
-            return render_template('seller/homeSeller.html',msg='Input barang berhasil!')
+            return redirect(url_for('home',msg='Input barang berhasil!')) 
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+@app.route('/updateJml', methods=['POST'])
+def updateJml():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            jumlah = request.form['jumlah']
+            id = request.form['id']
+            print(type(id))   
+            id_obj =ObjectId(id)
+            result = db.produk.find_one({'_id':id_obj})
+            if not result:
+                return jsonify(
+                    {
+                        "result": "fail",
+                        
+                    }
+                )
+            # tambahkan id barang
+            
+            jumlah= int(jumlah)
+            
+            # cari jumlah produk
+            stok =int(result.get('jumlah'))
+            # update stok
+            updatestok = str(stok+jumlah)
+            db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})         
+            
+            return jsonify(
+                {
+                    "result": "success",
+                    
+                }
+            )
+
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
@@ -379,7 +424,7 @@ def inputBarang():
 @app.route('/sidebar')
 def sidebar():
     return render_template('sidebar.html')
-  
+
 #route dashboard  
 @app.route('/dashboard')
 def dashboard():
