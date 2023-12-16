@@ -173,7 +173,7 @@ def editProfile():
     newPassword_receive = request.form.get('newPassword')
     alamat_receive = request.form.get('alamat')
     noTelp_receive = request.form.get('no_telp')
-    profile_receive = request.files.get('foto')
+    profile_receive = request.files.get('foto-prof')
     desc_receive = request.form.get('desc')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
@@ -205,6 +205,11 @@ def editProfile():
                         'alamat':alamat_receive,
                     }
                     if profile_receive:
+                        old_foto = db.users.find_one({'_id':id_obj})
+                        old_foto = old_foto.get('profile_pic_real')
+                        if old_foto != "profile_pics/profile_placeholder.png":
+                            old_foto = f'./static/'+ old_foto
+                            os.remove(old_foto)
                         uploadfoto(profile_receive,user_id,new_doc)
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
@@ -223,6 +228,11 @@ def editProfile():
                             'alamat':alamat_receive,
                     }
                     if profile_receive:
+                        old_foto = db.users.find_one({'_id':id_obj})
+                        old_foto = old_foto.get('profile_pic_real')
+                        if old_foto != "profile_pics/profile_placeholder.png":
+                            old_foto = f'./static/'+ old_foto
+                            os.remove(old_foto)
                         uploadfoto(profile_receive,user_id,new_doc)
                         db.users.update_one({'_id':id_obj},{'$set':new_doc})
                         response = make_response(redirect(url_for('profile',msg='Update data dan password berhasil')))
@@ -248,6 +258,11 @@ def editProfile():
                     'alamat':alamat_receive,
                 }
                 if profile_receive:
+                    old_foto = db.users.find_one({'_id':id_obj})
+                    old_foto = old_foto.get('profile_pic_real')
+                    if old_foto != "profile_pics/profile_placeholder.png":
+                        old_foto = f'./static/'+ old_foto
+                        os.remove(old_foto)
                     uploadfoto(profile_receive,user_id,new_doc)
                     db.users.update_one({'_id':id_obj},{'$set':new_doc})
                     response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
@@ -265,6 +280,11 @@ def editProfile():
                 'alamat':alamat_receive,
                 }                
                 if profile_receive:
+                    old_foto = db.users.find_one({'_id':id_obj})
+                    old_foto = old_foto.get('profile_pic_real')
+                    if old_foto != "profile_pics/profile_placeholder.png":
+                        old_foto = f'./static/'+ old_foto
+                        os.remove(old_foto)
                     uploadfoto(profile_receive,user_id,new_doc)
                     db.users.update_one({'_id':id_obj},{'$set':new_doc})
                     response = make_response(redirect(url_for('profile',msg='Update data berhasil')))
@@ -278,7 +298,47 @@ def editProfile():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+# get produk seller
+@app.route('/get_products', methods=['GET'])
+def get_products():
+    kategori = request.args.get('category')
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id = payload['id']
+        
+        if user_role == 'seller':
+            if kategori== 'Semua':
+                posts = list(db.produk.find({'seller_id':user_id}))
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
+            else:
+                posts = list(db.produk.find({'seller_id':user_id, 'kategori':kategori}))
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
+    
 # route jual
 @app.route('/jual', methods=['POST'])
 def jual():
@@ -590,6 +650,9 @@ def uploadfoto(profile_receive,user_id,new_doc):
     new_doc["profile_pic_real"] = file_path
     return new_doc
 
+    
+    
+                    
     
 
 if __name__ == "__main__":
