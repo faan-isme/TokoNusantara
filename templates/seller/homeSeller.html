@@ -10,12 +10,31 @@
 
 {% block script %}
 <script>
-  function submitForm() {
-    //buat validasi
 
-    // Mengambil referensi ke formulir
-    // Melakukan pengiriman formulir secara manual
+  {% if msg %}
+  alert('{{msg}}')
+  window.location.href = '/home'
+  {% endif %}
+  
+  function submitForm() {
+    let namaBarang = $('#namaBarang');
+    let kategori = $('#kategori');
+    let jumlah = $('#jumlah');
+    let harga = $('#harga');
+    let foto = $('#foto');
+    let deskripsi = $('#deskripsi');
+
+    if (!is_name(namabarang)) {
+      $('#info-namaBarang')
+          .text('Hanya masukkan angka dan huruf, minimal 3 karakter Maksimal 20 karakter !')
+          .removeClass('d-none');
+      $("#namaBarang").focus();
+      return;
+    }
     $('#formInputProduct').submit();
+    reset();
+    //$('#submitInputProduct').prop('disabled', true);
+    
   }
   //reset modal form input barang
   function reset() {
@@ -28,13 +47,17 @@
   }
 
   function update(id) {
+    var card = $('#' + id);
     id = id.split('-');
     var jumlah = $('#quantityInput-' + id[1]).val();
+    var item_id = card.data('idbarang');
+    console.log(jumlah,item_id)
     $.ajax({
       type: "POST",
       url: "/updateJml",
       data: {
-        jumlah: jumlah
+        id:item_id,
+        jumlah:jumlah
       },
       success: function (response) {
 
@@ -56,12 +79,12 @@
       return dataCart;
     });
 
-   
+
     //cek data di cart
     if (dataCart.includes(itemName)) {
       editItem(ids[1]);
     } else {
-      var item_id =card.data('idbarang');
+      var item_id = card.data('idbarang');
       var itemPrice = parseFloat(card.data('price'));
       var jml = $('#quantityInput-' + ids[1]).val();
       var table = document.getElementById('cart').getElementsByTagName('tbody')[0];
@@ -79,7 +102,7 @@
       cell1.innerHTML = nomor;
       cell2.innerHTML = itemName;
       cell3.innerHTML = 'Rp ' + itemPrice.toFixed(2);
-      cell4.innerHTML = '<input type="number" id="edit-' + ids[1] + '" style="width:30px; border:unset" min="1" data-idbarang="'+item_id+'" value="' + jml + '" onchange="updateTotal(this)">';
+      cell4.innerHTML = '<input type="number" id="edit-' + ids[1] + '" style="width:30px; border:unset" min="1" data-idbarang="' + item_id + '" value="' + jml + '" onchange="updateTotal(this)">';
       cell5.innerHTML = 'Rp ' + itemPrice.toFixed(2);
       cell6.innerHTML = '<button class="edit-btn btn btn-warning" onclick="editItem(' + ids[1] + ')" style="width: 50px;"><i class="fa-solid fa-pen-to-square fa-lg" style="color: #ffffff;"></i></button> <button class="delete-btn btn btn-danger" onclick="deleteItem(this)" style="width: 50px"><i class="fa-solid fa-trash-can fa-lg" style="color: #ffffff;"></i></button>';
 
@@ -130,14 +153,14 @@
       cartTable.addClass('d-none'); // Menambahkan kelas 'd-none' jika tidak ada item
     }
   }
-  function hideCart(){
+  function hideCart() {
     //sembuntukan cart table
     $('#cart').addClass('d-none');
     // Menghapus semua elemen dalam tbody
     $('#cart tbody').empty();
   }
   //jual barang yang ada di cart
-  function jualCart(){
+  function jualCart() {
     var table = $('#cart');
     var dataCart = [];
     let today = new Date().toISOString()
@@ -145,23 +168,23 @@
       var nama = $(this).find('td:eq(1)').text();
       var jumlah = $(this).find('td:eq(3) input').val();
       var id = $(this).find('td:eq(3) input').data('idbarang')
-      new_data ={
-        id:id,
-        nama:nama,
-        jumlah:jumlah,
-        tanggal:today
+      new_data = {
+        id: id,
+        nama: nama,
+        jumlah: jumlah,
+        tanggal: today
       }
-      if (jumlah){
-       dataCart.push(new_data); 
+      if (jumlah) {
+        dataCart.push(new_data);
       }
-      
+
     });
-    dataCart=JSON.stringify(dataCart)
+    dataCart = JSON.stringify(dataCart)
     $.ajax({
       type: "POST",
       url: "/jual",
       contentType: 'application/json',
-      dataType : 'json',
+      dataType: 'json',
       data: dataCart,
       success: function (response) {
         alert('Data Penjualan Telah di simpan');
@@ -231,7 +254,6 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
-  
 </style>
 {% endblock %}
 
@@ -282,7 +304,8 @@
 
 <div class="button mt-3">
   <div class="d-flex justify-content-around mb-8">
-    <button class="btn btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#inputProduct" style="color: white;">Input
+    <button class="btn btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#inputProduct"
+      style="color: white;">Input
       Produk</button>
   </div>
 </div>
@@ -315,7 +338,9 @@
         <td></td>
       </tr>
       <tr class="border-0 border-top">
-        <td colspan="6" style="text-align: center; border:unset;" ><button class="btn btn-success me-2" style="width: 100px;" onclick="jualCart()">Selesai</button><button class="btn btn-danger ms-2" style="width: 100px;" onclick="hideCart()">Batal</button></td>
+        <td colspan="6" style="text-align: center; border:unset;"><button class="btn btn-success me-2"
+            style="width: 100px;" onclick="jualCart()">Selesai</button><button class="btn btn-danger ms-2"
+            style="width: 100px;" onclick="hideCart()">Batal</button></td>
       </tr>
     </tfoot>
   </table>
@@ -335,12 +360,11 @@
           <div class="mb-3">
             <label for="namaBarang" class="form-label">Nama Barang</label>
             <input type="text" class="form-control" id="namaBarang" name="namaBarang" required>
-            <p id="info-name" class="text-danger d-none"></p>
+            <p id="info-namaBarang" class="text-danger d-none"></p>
           </div>
           <div class="mb-3">
             <label for="kategori" class="form-label">Kategori</label>
             <select class="form-select" id="kategori" name="kategori" aria-label="dropdown kategori" required>
-              <option selected>--pilih--</option>
               <option value="Elektronik">Elektronik</option>
               <option value="Kebersihan">Kebersihan</option>
               <option value="Kecantikan">Kecantikan</option>
@@ -349,6 +373,7 @@
               <option value="Sembako">Sembako</option>
               <option value="Perabotan">Perabotan</option>
             </select>
+            <p id="info-kategori" class="text-danger d-none"></p>
           </div>
           <div class="mb-3">
             <div class="d-flex justify-content-between">
@@ -374,12 +399,14 @@
           <div class="mb-3">
             <label for="deskripsi" class="form-label">Deskripsi (maks 25 karakter)</label>
             <textarea class="form-control" id="deskripsi" rows="3" name="desc"></textarea>
+            <p id="info-deskripsi" class="text-danger d-none"></p>
           </div>
+          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
+          <button type="submit" id="submitInputProduct" class="btn btn-primary" onclick="submitForm()" >Simpan</button>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
-        <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan</button>
+        
       </div>
     </div>
   </div>
@@ -415,11 +442,12 @@
             <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
               style="width:100px">Jual</button>
             <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
-              data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)" style="width:100px">Jual</button>
+              data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)"
+              style="width:100px">Jual</button>
             <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
               onclick="showInputJml(this.id)">Tambah</button>
             <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
-              onclick="update(this.id)">Update</button>
+            data-idbarang="{{item['_id']}}" onclick="update(this.id)">Update</button>
             <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
               style="width:100px">Batal</button>
           </div>
@@ -427,46 +455,6 @@
       </div>
     </div>
     {% endfor %}
-    <!-- example card
-    <div class="col mb-3" >
-      <div class="card h-100 " >
-        <img src="{{url_for('static', filename='img/mie.jpg')}}" class="card-img-top" alt="...">
-       
-        <div class="card-body">
-          <h5 class="card-title">Mie Goreng</h5>
-          <p class="card-text">Rp 5.000</p>
-          <div class="d-flex justify-content-center">
-            <p>100pcs</p>
-          </div>
-          
-          <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-1">
-            <div class="border">
-              <button class="border border-0" id="dec-1" style="width: 30px;" onclick="decrement(this.id)">-</button>
-              <input class="text-center border border-0" type="number" id="quantityInput-1" value="1">
-              <button class="border border-0" id="inc-1" style="width: 30px;" onclick="increment(this.id)">+</button>
-            </div>
-          </div>
-
-          
-          <div class="d-flex justify-content-around mb-2">
-            <button class="btn btn-outline-success" id="jual-1" onclick="showInputJml(this.id)"
-              style="width:100px">Jual</button>
-            <button class="btn btn-success d-none" id="jualCart-1" data-name="Mie Goreng" data-price="5000" data-idbarang="78131uyer726r"
-              onclick="addItem(this.id)" style="width:100px">Jual</button>
-            <button class="btn btn-outline-primary" id="tambah-1" style="width:100px"
-              onclick="showInputJml(this.id)">Tambah</button>
-            <button class="btn btn-primary d-none" id="update-1" style="width:100px; "
-              onclick="update(this.id)">Update</button>
-            <button class="btn btn-outline-danger d-none" id="batal-1" onclick="hideInputJml(this.id)"
-              style="width:100px">Batal</button>
-          </div>
-        </div>
-      </div>
-    </div> -->
-
-   
-
-
   </div>
 </div>
 {% endblock %}
