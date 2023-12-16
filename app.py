@@ -286,6 +286,7 @@ def jual():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+        user_id=payload['id']
         if user_role == 'seller':
             data_list = request.json
             for item in data_list:
@@ -302,12 +303,10 @@ def jual():
             # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
             for item in data_list:
                 # tambahkan id barang
-                id = item['id']
                 nama= item['nama']
                 jumlah= int(item['jumlah'])
                 tanggal= item['tanggal']
                 id_obj =ObjectId(item['id'])
-                print(id,jumlah,nama)
                 # cari jumlah produk
                 produk = db.produk.find_one({'_id':id_obj})
                 stok =int(produk.get('jumlah'))
@@ -317,8 +316,9 @@ def jual():
                 # masukkan ke hostori transaksi
                 doc ={
                     'tanggal':tanggal,
-                    'namaitem':nama,
+                    'namaBarang':nama,
                     'jumlah':jumlah,
+                    'seller_id':user_id
                 }
                 db.histori.insert_one(doc)
             
@@ -378,6 +378,7 @@ def inputBarang():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+# route update stok
 @app.route('/updateJml', methods=['POST'])
 def updateJml():
     token_receive = request.cookies.get('token')
@@ -386,8 +387,7 @@ def updateJml():
         user_role = payload['role']
         if user_role == 'seller':
             jumlah = request.form['jumlah']
-            id = request.form['id']
-            print(type(id))   
+            id = request.form['id'] 
             id_obj =ObjectId(id)
             result = db.produk.find_one({'_id':id_obj})
             if not result:
@@ -428,9 +428,159 @@ def sidebar():
 #route dashboard  
 @app.route('/dashboard')
 def dashboard():
-    return render_template('seller/dashboard.html')
+    msg = request.args.get('msg')
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id = payload['id']
+        
+        if user_role == 'seller':
+            data = db.produk.find({'seller_id':user_id})
+            histori = db.histori.find({'seller_id':user_id})
+            return render_template('seller/dashboard.html',data=data,histori=histori, msg=msg)
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    
+# route update produk
+@app.route('/produk/update', methods=['POST'])
+def updateBarang():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            namaBarang = request.form['namaBarang']
+            kategori = request.form['kategori']
+            jumlah = request.form['jumlah']
+            harga = request.form['harga']
+            foto = request.files.get('foto')
+            desc = request.form['desc']
+            id = request.form['id_barang_update']
+            id_obj=ObjectId(id)
+            
+            result = db.produk.find_one({'_id':id_obj})
+            if result:
+                if foto:
+                    
+                    # simpan foto baru
+                    filename = secure_filename(foto.filename)
+                    extension = filename.split(".")[-1]
+                    uniqename=shortuuid.uuid()
+                    file_path = f"foto_produk/{uniqename}.{extension}"
+                    foto.save("./static/" + file_path)
+                    # hapus foto lama
+                    old_foto = result.get('foto')
+                    old_foto = f'./static/'+ old_foto
+                    os.remove(old_foto)
+                    
+                    doc={
+                        'namaBarang':namaBarang,
+                        'kategori':kategori,
+                        'jumlah':jumlah,
+                        'harga':harga,
+                        'desc':desc,
+                        'foto':file_path,
+                        
+                    }
+                    db.produk.update_one({'_id':id_obj},{'$set':doc})
+                    return redirect(url_for('dashboard',msg='Edit barang berhasil!'))
+                else:
+                    doc={
+                        'namaBarang':namaBarang,
+                        'kategori':kategori,
+                        'jumlah':jumlah,
+                        'harga':harga,
+                        'desc':desc,
+                        
+                    }
+                    db.produk.update_one({'_id':id_obj},{'$set':doc})
+                    return redirect(url_for('dashboard',msg='Edit barang berhasil!'))     
+            else:
+                 return redirect(url_for('dashboard',msg='Produk Tidak di temukan!'))
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    
+# route hapus produk
+@app.route('/produk/hapus', methods=['POST'])
+def hapusproduk():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            id = request.form['id'] 
+            id_obj =ObjectId(id)
+            result = db.produk.find_one({'_id':id_obj})
+            if not result:
+                return jsonify(
+                    {
+                        "result": "fail",
+                        
+                    }
+                )
+           
+            
+            db.produk.delete_one( { "_id": id_obj} )       
+            
+            return jsonify(
+                {
+                    "result": "success",
+                    
+                }
+            )
 
- 
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    
+# route hapus histori
+@app.route('/histori/hapus', methods=['POST'])
+def hapushistori():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        if user_role == 'seller':
+            id = request.form['id']
+            id_obj =ObjectId(id)
+            result = db.histori.find_one({'_id':id_obj})
+            if not result:
+                return jsonify(
+                    {
+                        "result": "fail",
+                        
+                    }
+                )
+           
+            
+            db.histori.delete_one( { "_id": id_obj} )       
+            
+            return jsonify(
+                {
+                    "result": "success",
+                    
+                }
+            )
+
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    
 # fungsi update foto
 def uploadfoto(profile_receive,user_id,new_doc):
     filename = secure_filename(profile_receive.filename)
