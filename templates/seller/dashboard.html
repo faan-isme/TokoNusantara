@@ -111,24 +111,143 @@
 <a href="/dashboard" class="link-list nav-active">Dashboard</a>
 <a href="profile" class="link-list">Profile</a>
 {% endblock %}
+{% block script %}
+<script>
+    function konfimHapusBarang(id) {
+        // Mengambil nilai data-id dari tombol yang diklik
+
+        let item_id = $('#' + id);
+        var dataId = item_id.data('id');
+        $('#hapus').attr('data-id', dataId);
+    }
+    function hapus(id) {
+        var card = $('#' + id);
+        var item_id = card.data('id');
+        $.ajax({
+            type: "POST",
+            url: "/produk/hapus",
+            data: {
+                id: item_id,
+            },
+            success: function (response) {
+                if (response["result"] === "success") {
+                    alert("Data berhasil dihapus")
+                } else {
+                    alert("Data gagal dihapus")
+                }
+
+                window.location.reload()
+            }
+        })
+    }
+    function konfimHapusHistori(id) {
+        // Mengambil nilai data-id dari tombol yang diklik
+
+        let item_id = $('#' + id);
+        var dataId = item_id.data('id');
+        console.log(dataId);
+        $('#hapusHistori').attr('data-id', dataId);
+    }
+    function hapusHistori(id) {
+        var card = $('#' + id);
+        var item_id = card.data('id');
+        $.ajax({
+            type: "POST",
+            url: "/histori/hapus",
+            data: {
+                id: item_id,
+            },
+            success: function (response) {
+                if (response["result"] === "success") {
+                    alert("Data berhasil dihapus")
+                } else {
+                    alert("Data gagal dihapus")
+                }
+
+                window.location.reload()
+            }
+        })
+    }
+    function is_desc(asValue) {
+        var regExp = /^([A-Za-z0-9()\/@*.,:!@#$%\s]{0,25})?$/;
+        return regExp.test(asValue);
+    }
+    function count_char() {
+
+        // Ambil nilai dari textarea
+        var deskripsi = $("#desc").val();
+        let max = 25;
+        // Hitung panjang karakter
+        var charCount = max - deskripsi.length;
+        // Update tampilan panjang karakter
+        $("#charCount").text('Deskripsi (' + charCount + '/25)');
+        //peringatan validasi
+        if (!is_desc(deskripsi)) {
+            $('#info-desc')
+                .text('Maksimal 50 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
+                .removeClass('d-none');
+            $("#desc").focus();
+            return;
+        } else {
+            $('#info-desc')
+                .text('')
+                .addClass('d-none');
+        }
+
+    }
+    function editItem(id) {
+        let item_id = $('#' + id);
+        var id_barang = item_id.data('id');
+        var nama = item_id.data('nama');
+        var desc = item_id.data('desc');
+        var harga = item_id.data('harga');
+        var jumlah = item_id.data('jumlah');
+        var foto = item_id.data('foto');
+        var kategori = item_id.data('kategori');
+        $('#id_barang_update').val(id_barang);
+        $('#namaBarang').val(nama);
+        $('#desc').val(desc);
+        $('#harga').val(harga);
+        $('#jumlah').val(jumlah);
+        $('#kategori').val(kategori);
+        $("#img-produk").attr("src", "/static/" + foto);
+        let descleng = $('#desc').val();
+        let max = 25;
+        // Hitung panjang karakter
+        var charCount = max - descleng.length;
+        // Update tampilan panjang karakter
+        $("#charCount").text('Deskripsi (' + charCount + '/25)');
+
+    }
+    function updateItem() {
+        $('#namaBarang').val();
+        $('#desc').val();
+        $('#harga').val();
+        $('#jumlah').val();
+        $('#kategori').val();
+        
+        $('#formEditPrduct').submit();
+    }
+
+</script>
 
 
+{% endblock %}
 
 {% block konten %}
 <div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
-        <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" aria-current="true"
+        <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active" aria-current="true"
             aria-label="Slide 1"></button>
         <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
         <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
     </div>
-
     <div class="carousel-inner">
         <div class="carousel-item active c-item">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
                 class="d-block w-100 c-img" alt="Slide 1">
             <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+                <h1 class="display-1 fw-bolder text-capitalize">TOKO NUSANTARA</h1>
             </div>
         </div>
         <div class="carousel-item c-item">
@@ -163,24 +282,44 @@
                 <th scope="col" class="wider-column">Produk</th>
                 <th scope="col">Harga</th>
                 <th scope="col">Jumlah</th>
+                <th>Aksi</th>
             </tr>
         </thead>
+
         <tbody>
+            {% set data_list = data|list %}
+            {% if data_list|length == 0 %}
             <tr>
-                <td>Indomie</td>
-                <td>3.000.000</td>
-                <td>10</td>
+                <td colspan="4">
+                    <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
+                </td>
             </tr>
+            {% else %}
+            {% for item in data_list %}
+
             <tr>
-                <td>Elpiji 3kg</td>
-                <td>18.000</td>
-                <td>30</td>
+                <td>{{item['namaBarang']}}</td>
+                <td>{{item['harga']}}</td>
+                <td>{{item['jumlah']}}</td>
+                <td><button type="button" data-bs-toggle="modal" data-bs-target="#editProduct"
+                        class="edit-btn btn btn-warning" id="barang-{{ loop.index }}" data-harga="{{item['harga']}}"
+                        data-kategori="{{item['kategori']}}" data-nama="{{item['namaBarang']}}"
+                        data-jumlah="{{item['jumlah']}}" data-desc="{{item['desc']}}" data-foto="{{item['foto']}}" data-id="{{item['_id']}}"
+                        onclick="editItem(this.id)" style="width: 50px;"><i class="fa-solid fa-pen-to-square fa-lg"
+                            style="color: #ffffff;"></i></button>
+                    <button class="delete-btn btn btn-danger" style="width: 50px" data-bs-target="#hapuskonfirmasi"
+                        data-bs-toggle="modal" id="del-{{ loop.index }}" data-id="{{item['_id']}}"
+                        onclick="konfimHapusBarang(this.id)"><i class="fa-solid fa-trash-can fa-lg"
+                            style="color: #ffffff;"></i></button>
+                </td>
             </tr>
-            <tr>
-                <td>Minyak Goreng</td>
-                <td>17.000</td>
-                <td>60</td>
-            </tr>
+            {% endfor %}
+            {% endif %}
+
+
+
+
+
         </tbody>
     </table>
 </div>
@@ -192,28 +331,166 @@
                 <th scope="col">Tanggal</th>
                 <th scope="col" class="wider-column">Produk</th>
                 <th scope="col">Jumlah</th>
+                <th scope="col">Aksi</th>
             </tr>
         </thead>
         <tbody>
+            {% set histori_list = histori|list %}
+            {% if histori_list|length == 0 %}
             <tr>
-                <td>12-1-2023</td>
-                <td>Indomie</td>
-                <td>10</td>
+                <td colspan="4">
+                    <h3 class="text-center text-danger">Belum ada histori transaksi!</h3>
+                </td>
             </tr>
+            {% else %}
+            {% for item in histori_list %}
             <tr>
-                <td>30-11-2023</td>
-                <td>Elpiji</td>
-                <td>30</td>
+                <td>{{item['tanggal']}}</td>
+                <td>{{item['namaBarang']}}</td>
+                <td>{{item['jumlah']}}</td>
+                <td> <button class="delete-btn btn btn-danger" style="width: 50px"
+                        data-bs-target="#hapusHistoriKonfirmasi" data-bs-toggle="modal" id="historidel-{{ loop.index }}"
+                        data-id="{{item['_id']}}" onclick="konfimHapusHistori(this.id)"><i
+                            class="fa-solid fa-trash-can fa-lg" style="color: #ffffff;"></i></button>
+                </td>
             </tr>
-            <tr>
-                <td>25-10-2023</td>
-                <td>Minyak Goreng</td>
-                <td>60</td>
-            </tr>
+            {% endfor %}
+            {% endif %}
+
         </tbody>
     </table>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="editProduct" tabindex="-1" aria-labelledby="editProduct" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="titleModal">Edit Produk</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/produk/update" method="post" enctype="multipart/form-data" id="formEditPrduct">
+                    <input type="hidden" name="id_barang_update" id="id_barang_update">
+                    <div class="mb-3 d-flex justify-content-center">
+                        <div class="my-3" style="height: 10rem; width:10rem;  overflow:hidden">
+                            <img id="img-produk" src="" alt="" class="img-circle" style="height: 100%;">
+
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="namaBarang" class="form-label">Nama Barang</label>
+                        <input type="text" class="form-control" id="namaBarang" name="namaBarang">
+                        <p id="info-name" class="text-danger d-none"></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="kategori" class="form-label">Kategori</label>
+                        <select class="form-select" id="kategori" name="kategori" aria-label="dropdown kategori"
+                            required>
+                            <option value="Elektronik">Elektronik</option>
+                            <option value="Kebersihan">Kebersihan</option>
+                            <option value="Kecantikan">Kecantikan</option>
+                            <option value="Makanan">Makanan</option>
+                            <option value="Minuman">Minuman</option>
+                            <option value="Sembako">Sembako</option>
+                            <option value="Perabotan">Perabotan</option>
+                        </select>
+                        <p id="info-kategori" class="text-danger d-none"></p>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div class="me-2">
+                                <label for="jumlah" class="form-label">jumlah</label>
+                                <input type="number" class="form-control " id="jumlah" name="jumlah" required>
+                            </div>
+                            <div class="ms-2">
+                                <label for="harga" class="form-label">harga</label>
+                                <input type="number" class="form-control " id="harga" name="harga" required>
+                            </div>
+                        </div>
+                        <p id="info-harga" class="text-danger d-none"></p>
+                        <p id="info-jumlah" class="text-danger d-none"></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">Foto </label>
+                        <input class="form-control" type="file" id="foto" name="foto">
+                        <p id="info-foto" class="text-danger d-none"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="desc" class="form-label" id="charCount">Deskripsi </label>
+                        <textarea class="form-control" id="desc" rows="3" name="desc" onkeyup="count_char()"></textarea>
+                        <p id="info-desc" class="text-danger d-none"></p>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" data-bs-target="#editkonfirmasi"
+                        data-bs-toggle="modal">Simpan perubahan</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editkonfirmasi" aria-hidden="true" aria-labelledby="editProdukKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editProdukKonfirmasi">Ubah</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah anda yakin ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" data-bs-dismiss="modal" onclick="updateItem()">Konfirmasi</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProduct">Kembali</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="hapuskonfirmasi" aria-hidden="true" aria-labelledby="hapusProdukKonfirmasi" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="hapusProdukKonfirmasi">Hapus Produk</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah anda yakin ingin menghapus produk ini ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning " data-bs-dismiss="modal" id="hapus"
+                    onclick="hapus(this.id)">Konfirmasi</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="hapusHistoriKonfirmasi" aria-hidden="true" aria-labelledby="hapusHistoriKonfirmasiTitle"
+    tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="hapusHistoriKonfirmasiTitle">Hapus Histori Penjulan</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Apakah anda yakin ingin menghapus produk ini ?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning " data-bs-dismiss="modal" id="hapusHistori"
+                    onclick="hapusHistori(this.id)">Konfirmasi</button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {% endblock %}
-
-
