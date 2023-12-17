@@ -704,11 +704,12 @@ def get_sellers():
         # Create a list of seller details
         for seller in sellers:
             seller_details = {
+                "sellerId": str(seller.get("_id")),
                 "toserbaname": seller.get("toserbaname"),
                 "profile_info": seller.get("profile_info"),
                 "no_telp": seller.get("no_telp"),
                 "alamat": seller.get("alamat"),
-                "profile_pic_real": seller.get("profile_pic_real")
+                "profile_pic_real": seller.get("profile_pic_real"),
             }
             seller_list.append(seller_details)
 
@@ -834,6 +835,40 @@ def get_mylist():
         # Log the error for debugging
         print(f"Error in get_mylist route: {e}")
         return jsonify({"success": False, "message": str(e)})
+
+@app.route('/add_to_favorites', methods=['POST'])
+def add_to_favorites():
+    try:
+        # Get the JSON data from the request
+        data = request.json
+
+        # Extract relevant information from the JSON data
+        username = data.get('username')
+        toserbaname = data.get('toserbaname')
+        sellerId = data.get('sellerId')
+
+        # Generate a unique ID for the user (you may use a different approach for uniqueness)
+        user_id = str(ObjectId())
+
+        # Store the favorite information in the myfavorite collection
+        favorite_doc = {
+            'user_id': user_id,
+            'toserbaname': toserbaname,
+            'sellerId': sellerId,
+        }
+        db.myfavorite.insert_one(favorite_doc)
+
+        # Update the user's ID in the users collection
+        db.users.update_one({'username': username}, {'$set': {'user_id': user_id}}, upsert=True)
+
+        # Return a success response to the client
+        return jsonify({"success": True, "message": "Seller added to favorites successfully"})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in add_to_favorites route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
