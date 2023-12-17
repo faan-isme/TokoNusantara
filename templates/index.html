@@ -95,8 +95,6 @@
         .card .btn-secondary {
             border-radius: 10px;
             width: 150px;
-            margin-top: 20px;
-            padding-top: 5px;
         }
 
         .main-footer {
@@ -137,6 +135,10 @@
             text-align: center;
         }
 
+        .card-mylist {
+            font-size: 14px;
+        }
+
         .card-mylist-empty {
             margin: 10px 20px 10px 20px;
             padding: 100px 0 100px 0;
@@ -155,7 +157,7 @@
 
 
         .fa-trash-can {
-            color: gray;
+            color: red;
         }
 
 
@@ -166,9 +168,23 @@
         .mylist-tokoname {
             font-size: 80%;
         }
+
+        #list-total-harga {
+            text-align: right;
+            /* Align the total price to the right */
+            align-items: right;
+        }
+
+        .total-row {
+            background-color: #f0f0f0;
+            /* Set a different background color */
+            font-weight: bold;
+            /* Make the text bold */
+            /* Add any other styling you want for the total row */
+        }
     </style>
     <script>
-        
+
         function deleteFavoriteItem(toserbaname) {
             $.ajax({
                 type: "POST", // Use POST method for deletion
@@ -201,7 +217,6 @@
                     if (data.success) {
                         // If the request is successful, update the UI
                         updateMyFavoriteList(data.favorite_items);
-                        console.log("myfavorite", data.favorite_items);
                     } else {
                         console.error("Error fetching MyFavorite items:", data.message);
                     }
@@ -213,31 +228,50 @@
         }
 
         // Declare updateMyFavoriteList globally
+
         function updateMyFavoriteList(myfavoriteItems) {
             var myFavoriteTableBody = $("#myfavorite tbody");
 
             // Clear existing content
             myFavoriteTableBody.empty();
 
-            // Keep track of toserbanames to avoid duplicates
-            var toserbanameSet = new Set();
+            // Check if myfavoriteItems is empty
+            if (myfavoriteItems.length === 0) {
+                // Display the empty card
+                var emptyCardHtml = `
+                <div class="card-body">
+                    <p class="card-text">
+                        <table id="mylist-empty" class="table">
+                            <div style="text-align: center;"
+                            >Tambahkan toko favoritmu!</div>
+                        </table>
+                    </p>
+                </div>`;
 
-            // Iterate through myfavoriteItems and append rows to the table
-            myfavoriteItems.forEach(function (item) {
-                // mengecek apabila ada duplikasi
-                if (!toserbanameSet.has(item.toserbaname)) {
-                    var rowHtml = `
-                <tr>
-                    <td><a href="/user/${item.toserbaname}">${item.toserbaname}</a></td>                     
-                    <td><a href="#" onclick="deleteFavoriteItem('${item.toserbaname}')"><i class="fa-solid fa-trash-can"></i></a></td>   
-                </tr>`;
-                    myFavoriteTableBody.append(rowHtml);
+                // Append the empty card HTML to the container
+                myFavoriteTableBody.append(emptyCardHtml);
+            } else {
+                // Keep track of toserbanames to avoid duplicates
+                var toserbanameSet = new Set();
 
-                    // Add toserbaname to the set to track duplicates
-                    toserbanameSet.add(item.toserbaname);
-                }
-            });
+                // Iterate through myfavoriteItems and append rows to the table
+                myfavoriteItems.forEach(function (item) {
+                    // mengecek apabila ada duplikasi
+                    if (!toserbanameSet.has(item.toserbaname)) {
+                        var rowHtml = `
+                    <tr>
+                        <td><a href="/user/${item.toserbaname}">${item.toserbaname}</a></td>                     
+                        <td class="text-end"><a href="#" onclick="deleteFavoriteItem('${item.toserbaname}')"><i class="fa-solid fa-trash-can"></i></a></td>   
+                    </tr>`;
+                        myFavoriteTableBody.append(rowHtml);
+
+                        // Add toserbaname to the set to track duplicates
+                        toserbanameSet.add(item.toserbaname);
+                    }
+                });
+            }
         }
+
 
         // Function to update the DOM with the favorite status
         function updateFavoriteStatus(favoriteStatus) {
@@ -277,7 +311,7 @@
 
                 // Clear existing content
                 toserbaContainer.empty();
-                
+
 
                 // Iterate through the sellers and append cards to the container
                 sellers.forEach(function (seller) {
@@ -397,6 +431,7 @@
             getMyListItems();
 
             // Function to update MyList table
+
             function updateMyListTable(mylistItems) {
                 var myListTableBody = $("#mylist tbody");
                 myListTableBody.empty(); // Clear existing content
@@ -404,13 +439,22 @@
                 var totalPrice = 0;
 
                 mylistItems.forEach(function (item, index) {
+                    var product_id = item.product_id;
                     var rowHtml = `
-                     <tr id="row-list">
-                         <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
-                         <td>${index + 1}</td>
-                         <td>Rp ${item.harga}</td>
-                         <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
-                     </tr>`;
+                    <tr id="row-list" data-product-id="${product_id}">
+                        <td>
+                            ${item.namaProduk}<br>
+                            <p class="mylist-tokoname">
+                                <a href="/user/${item.toserbaname}" target="_blank">${item.toserbaname}</a>
+                            </p>
+                        </td>
+                        <td>${item.quantity}</td>
+                        <td>
+                            <span style="float: right;">Rp${item.harga}</span>
+                        </td>
+                        <td>
+                            <a href="#" onclick="deleteListItem('${product_id}')"><i class="fa-solid fa-trash-can"></i></a>                        </td>
+                    </tr>`;
                     myListTableBody.append(rowHtml);
 
                     // Calculate total price
@@ -418,38 +462,15 @@
                 });
 
                 // Update the total price in the table footer
-                $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+                $("#list-total-harga").text("Rp " + totalPrice);
             }
         });
 
-        function deleteListItem(rowId) {
-            // Send an AJAX request to the server to delete the item
-            $.ajax({
-                type: "POST",
-                url: "/delete_favorite",
-                data: JSON.stringify({ rowId: rowId }),
-                contentType: "application/json;charset=UTF-8",
-                success: function (response) {
-                    console.log("Item deleted from MyList:", response);
-                    alert("berhasil dihapus")
-
-                    // Remove the row from the table
-                    $("#mylist tbody tr[data-row-id='" + rowId + "']").remove();
-
-                    // Update the total price in the table footer
-                    updateTotalPrice();
-                },
-                error: function (error) {
-                    console.error("Error deleting item from MyList:", error);
-                }
-            });
-        }
 
         var username = "{{ username }}" || null;
 
         function favorit(event, sellerId) {
             event.preventDefault();
-            console.log("Seller Id", sellerId)
 
             // Check if the user is logged in
             if (!username) {
@@ -517,7 +538,7 @@
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
                     // Handle success (if needed)
-                    alert("Product added to MyList:", response);
+                    alert("Product added to MyList", response);
 
                     // Check if the product is already in the MyList
                     var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
@@ -549,7 +570,6 @@
 
                     // Update the total price in the table footer
                     updateTotalPrice();
-                    alert("Berhasil di tambahkan!");
                     location.reload(true)
 
                 },
@@ -569,7 +589,37 @@
             });
 
             // Update the total price in the table footer
-            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+            $("#list-total-harga").text("Rp " + totalPrice);
+        }
+
+        function deleteListItem(product_id) {
+            // Send an AJAX request to the server to delete the item
+            $.ajax({
+                type: "POST",
+                url: "/delete_mylist_item",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({ product_id: product_id }),
+                success: function (response) {
+                    if (response.success) {
+                        console.log("Item deleted from MyList:", response.message);
+
+                        alert("Item deleted from MyList successfully");
+
+                        // Remove the row from the table
+                        $("#mylist tbody tr[data-product-id='" + product_id + "']").remove();
+
+                        // Update the total price in the table footer
+                        updateTotalPrice();
+                    } else {
+                        console.error("Error deleting item from MyList:", response.message);
+                        alert("Error deleting item from MyList: " + response.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Error deleting item from MyList:", error);
+                    alert("Error deleting item from MyList. Please try again later.");
+                }
+            });
         }
 
 
@@ -651,6 +701,39 @@
                 }
             });
         };
+
+        // Function to delete all items from MyList
+        function deleteAllMyListItems(username) {
+            console.log("Deleting all items for username:", username);
+
+            // Send an AJAX request to the server to delete all items for the user
+            $.ajax({
+                type: "POST",
+                url: "/delete_all_mylist_items",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({ username: username }),
+                success: function (response) {
+                    if (response.success) {
+                        console.log("All items deleted from MyList:", response.message);
+
+                        alert("All items deleted from MyList successfully");
+
+                        // Remove all rows from the table
+                        $("#mylist tbody").empty();
+
+                        // Update the total price in the table footer
+                        updateTotalPrice();
+                    } else {
+                        console.error("Error deleting all items from MyList:", response.message);
+                        alert("Error deleting all items from MyList: " + response.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Error deleting all items from MyList:", error);
+                    alert("Error deleting all items from MyList. Please try again later.");
+                }
+            });
+        }
 
     </script>
 </head>
@@ -738,20 +821,10 @@
                         class="figure-img img-fluid rounded" alt="...">
                     <figcaption class="figure-caption">{{username}}
                     </figcaption>
+                    <button type="button" class="btn btn-primary">Edit</button>
+
                 </figure>
                 <h5>MyList</h5>
-                <!-- card empty -->
-                <div class="card card-sidebar card-mylist-empty">
-                    <div class="card-body">
-                        <p class="card-text">
-                        <table id="mylist-empty" class="table">
-                            <div>ups...
-                                daftarmu masih
-                                kosongg</div>
-                        </table>
-                        </p>
-                    </div>
-                </div>
                 <!-- card -->
                 <div class="card card-sidebar card-mylist wider-card">
                     <div class="card-body">
@@ -762,6 +835,7 @@
                                     <th scope="col">Deskripsi</th>
                                     <th scope="col">#</th>
                                     <th scope="col">Harga</th>
+                                    <th scope="col"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -785,14 +859,14 @@
                                 <tr>
                                     <td>Total</td>
                                     <td></td>
-                                    <td id="list-total-harga">Rp96.000</td>
+                                    <td id="list-total-harga" colspan="3">Rp96.000</td>
                                 </tr>
                             </tfoot>
                         </table>
                         </p>
                         <div class="btn-list">
-                            <button type="button" class="btn btn-secondary">Hapus</button>
-                            <button type="button" class="btn btn-secondary">Edit</button>
+                            <button type="button" class="btn btn-secondary"
+                                onclick="deleteAllMyListItems('{{username}}')">Hapus</button>
                         </div>
                     </div>
                 </div>
@@ -806,7 +880,7 @@
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
-                            
+
                             <tbody>
                                 {% for item in myfavoriteItems %}
                                 <tr>

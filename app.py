@@ -772,6 +772,8 @@ def seller_profile(toserbaname):
         print(f"Error in seller_profile route: {e}")
         return render_template('error.html', error_message="An error occurred while fetching seller profile.")
 
+# ... (existing code)
+
 @app.route('/add_to_mylist', methods=['POST'])
 def add_to_mylist():
     try:
@@ -784,13 +786,41 @@ def add_to_mylist():
         harga = data.get('harga')
         toserbaname = data.get('toserbaname')
 
-        mylist_doc = {
-            'username': username,
-            'namaProduk': namaProduk,
-            'harga': harga,
-            'toserbaname': toserbaname
-        }
-        db.mylist.insert_one(mylist_doc)
+        # Fetch the product from the produk collection to get the product_id
+        product = db.produk.find_one({'namaBarang': namaProduk, 'toserbaname': toserbaname})
+
+        if not product:
+            return jsonify({"success": False, "message": "Product not found in the database"})
+
+        product_id = str(product.get('_id'))
+
+        # Check if the product already exists in the user's MyList
+        existing_item = db.mylist.find_one({'username': username, 'namaProduk': namaProduk})
+
+        if existing_item:
+            # If the product exists, update quantity and total price
+            existing_quantity = existing_item.get('quantity', 1)
+            existing_price = existing_item.get('harga', 0)
+
+            updated_quantity = existing_quantity + 1
+            updated_price = existing_price + harga  # Add the current price to the existing total price
+
+            # Update the existing MyList entry
+            db.mylist.update_one(
+                {'username': username, 'namaProduk': namaProduk},
+                {'$set': {'quantity': updated_quantity, 'harga': updated_price}}
+            )
+        else:
+            # If the product does not exist, insert a new MyList entry with product_id as a string
+            mylist_doc = {
+                'username': username,
+                'namaProduk': namaProduk,
+                'harga': harga,
+                'toserbaname': toserbaname,
+                'product_id': product_id,  # Product_id is now a string
+                'quantity': 1  # Initial quantity for a new product
+            }
+            db.mylist.insert_one(mylist_doc)
 
         # Return a success response to the client
         return jsonify({"success": True, "message": "Product added to MyList successfully"})
@@ -820,7 +850,9 @@ def get_mylist():
                 'username': item.get('username'),
                 'namaProduk': item.get('namaProduk'),
                 'harga': item.get('harga'),
-                'toserbaname': item.get('toserbaname')
+                'toserbaname': item.get('toserbaname'),
+                'quantity': item.get('quantity'),
+                'product_id': str(item.get('product_id'))  # Convert ObjectId to string
             }
             mylist_items.append(mylist_item)
 
@@ -850,7 +882,7 @@ def add_to_favorites():
         existing_favorite = db.myfavorite.find_one({'username': username, 'toserbaname': toserbaname})
 
         if existing_favorite:
-            return jsonify({"success": False, "message": "Seller is already in favorites"})
+            return jsonify({"success": False, "message": "Seller is already in MyList"})
 
         # Store the favorite information in the myfavorite collection
         favorite_doc = {
@@ -907,6 +939,7 @@ def delete_favorite():
         print(f"Error in delete_favorite route: {e}")
         return jsonify({"success": False, "message": str(e)})
 
+
 @app.route('/get_myfavorites', methods=['GET'])
 def get_myfavorites():
     try:
@@ -941,6 +974,65 @@ def get_myfavorites():
         # Log the error for debugging
         print(f"Error in get_myfavorites route: {e}")
         return jsonify({"success": False, "message": str(e)})
+
+@app.route('/delete_mylist_item', methods=['POST'])
+def delete_mylist_item():
+    try:
+        # Get the JSON data from the request
+        data = request.json
+
+        # Extract product_id from the data
+        product_id = data.get('product_id')
+
+        # Check if product_id is present in the data
+        if not product_id:
+            return jsonify({"success": False, "message": "Product ID not provided"})
+
+        # Delete the MyList item with the specified product_id
+        result = db.mylist.delete_one({'product_id': product_id})
+
+        if result.deleted_count > 0:
+            # Return success response if item is deleted
+            return jsonify({"success": True, "message": "Item deleted from MyList successfully"})
+        else:
+            # Return failure response if item is not found
+            return jsonify({"success": False, "message": "Item not found in MyList"})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in delete_mylist_item route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route('/delete_all_mylist_items', methods=['POST'])
+def delete_all_mylist_items():
+    try:
+        # Get the JSON data from the request
+        data = request.json
+
+        # Extract username from the data
+        username = data.get('username')
+
+        # Check if username is present in the data
+        if not username:
+            return jsonify({"success": False, "message": "Username not provided"})
+
+        # Delete all MyList items for the specified username
+        result = db.mylist.delete_many({'username': username})
+
+        if result.deleted_count > 0:
+            # Return success response if items are deleted
+            return jsonify({"success": True, "message": "All items deleted from MyList successfully"})
+        else:
+            # Return failure response if no items are found
+            return jsonify({"success": False, "message": "No items found in MyList for the specified username"})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in delete_all_mylist_items route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
