@@ -58,8 +58,8 @@
     {% block konten %}
 
     {% endblock %}
-    <div class="container">
-        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <div class="container-fluid sticky-bottom bg-white" style="box-shadow: 0rem -0.13rem 3px rgba(0, 0, 0, 0.15) !important;">
+        <footer class="container d-flex flex-wrap justify-content-between align-items-center py-2  border-top">
             <div class="col-md-4 d-flex align-items-center">
                 <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
                     <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">

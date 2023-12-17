@@ -530,7 +530,7 @@ def dashboard():
         
         if user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
-            histori = db.histori.find({'seller_id':user_id})
+            histori = db.histori.find({'seller_id':user_id}).sort('tanggal', -1)
             return render_template('seller/dashboard.html',data=data,histori=histori, msg=msg)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
