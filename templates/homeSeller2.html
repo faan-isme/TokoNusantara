@@ -180,18 +180,18 @@
 
 <body>
 
-  <nav class="nav-container">
-    <div class="navbar-brand">LOGO</div>
+   <nav class="nav-container fixed-top">
+    <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
     <div class="nav-link">
-      <a href="#" class="link-list">Home</a>
-      <a href="#" class="link-list">MyList</a>
-      <a href="#" class="link-list">Profile</a>
+        <a href="#" class="link-list">Home</a>
+        <a href="#" class="link-list">MyList</a>
+        <a href="#" class="link-list">Profile</a>
     </div>
     <div class="nav-logout">
-      <a class="nav-link" href="#"><img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-          alt=""></a>
+        <a href="/logout" class="logout"><i
+                class="fa-solid fa-arrow-right-from-bracket fa-lg" style="color: #000000;"></i></a>
     </div>
-  </nav>
+</nav>
 
   <h1>Welcome, {{ toserbaname }}!</h1>
 
