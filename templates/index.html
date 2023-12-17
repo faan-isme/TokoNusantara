@@ -22,66 +22,19 @@
     <link href='{{ url_for("static", filename="style.css") }}' rel="stylesheet">
     <!-- font-awsome -->
     <script src="https://kit.fontawesome.com/2efb8198c8.js" crossorigin="anonymous"></script>
+    <!-- PopperJS & Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+        integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+        crossorigin="anonymous"></script>
 
     <title>Toko Nusantara</title>
 
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Function to retrieve sellers from the server
-            function getSellers() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_sellers",
-                    success: function (data) {
-                        updateSellerList(data.sellers);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching sellers:", error);
-                    }
-                });
-            }
-            // Function to update the DOM with the list of sellers
-            function updateSellerList(sellers) {
-                var toserbaContainer = $("#toserba");
-
-                // Clear existing content
-                toserbaContainer.empty();
-
-                // Iterate through the sellers and append cards to the container
-                sellers.forEach(function (seller) {
-                    // Log each seller's toserbaname with the role "seller"
-                    if (seller.role === "seller") {
-                        console.log("Seller toserbaname:", seller.toserbaname);
-                    }
-
-                    var cardHtml = `
-                    <div class="col">
-                        <div class="card">
-                            <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                                class="card-img-top" alt="...">
-                            <div class="card-body">
-                                <h5 class="text-center">${seller.toserbaname}</h5>
-                                <p class="text-center">Deskripsi</p>
-                            </div>
-                            <div class="d-flex justify-content-around mb-5">
-                                <button class="btn btn-secondary">lihat</button>
-                            </div>
-                        </div>
-                    </div>`;
-                    // Append the card HTML to the container
-                    toserbaContainer.append(cardHtml);
-                });
-            }
-
-            // Call the function to get sellers when the document is loaded
-            getSellers();
-        });
-    </script>
-
-<body>
 
     <style>
         .search {
@@ -127,7 +80,6 @@
         }
 
 
-
         .mycards {
             margin: 20px auto 0px auto;
             width: 95%;
@@ -150,213 +102,602 @@
         .main-footer {
             margin-top: 50px;
         }
+
+        .toserba-card {
+            margin: 0 10px 0 10px;
+        }
+
+        .card-text {
+            margin: 0 10px 0 10px;
+        }
+
+        /* sidebar style */
+        .figure {
+            text-align: center;
+        }
+
+        .figure img {
+            max-height: 150px;
+            border-radius: 50% !important;
+            margin-bottom: 10px;
+        }
+
+        .figure-caption {
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .card-sidebar {
+            padding: 0 10px 0 10px;
+            margin: 0 10px 10px 10px;
+            width: 90%
+        }
+
+        .btn-list {
+            text-align: center;
+        }
+
+        .card-mylist-empty {
+            margin: 10px 20px 10px 20px;
+            padding: 100px 0 100px 0;
+            background: white;
+            border-radius: 5%;
+            text-align: center;
+        }
+
+        .fa-trash-can {
+            color: gray;
+        }
+
+
+        .star-icon {
+            color: blue;
+        }
+
+        .mylist-tokoname {
+            font-size: 80%;
+        }
     </style>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             // Function to retrieve sellers from the server
             function getSellers() {
-                fetch('/get_sellers')
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('List of Sellers:', data.sellers);
-                        logToserbaname(data.sellers);
-                    })
-                    .catch(error => console.error('Error fetching sellers:', error));
+                $.ajax({
+                    type: "GET",
+                    url: "/get_sellers",
+                    success: function (data) {
+                        updateSellerList(data.sellers);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching sellers:", error);
+                    }
+                });
+                // Function to update the DOM with the favorite status
+                function updateFavoriteStatus(favoriteStatus) {
+                    favoriteStatus.forEach(function (status) {
+                        var card = $(`.card[data-product-id="${status.productId}"][data-seller-id="${status.sellerId}"]`);
+                        var starIcon = card.find('.fa-star');
+
+                        // Update the star icon class based on the favorite status
+                        if (status.favoriteStatus) {
+                            starIcon.addClass('fa-solid').removeClass('fa-regular');
+                        } else {
+                            starIcon.addClass('fa-regular').removeClass('fa-solid');
+                        }
+                    });
+                }
             }
 
-            // Function to log the "toserbaname" of each seller
-            function logToserbaname(sellers) {
-                sellers.forEach(seller => {
-                    if (seller.role === 'seller') {
-                        console.log('Seller toserbaname:', seller.toserbaname);
+            // Function to update the DOM with the list of sellers
+            function updateSellerList(sellers) {
+                var toserbaContainer = $("#toserba");
+
+                // Clear existing content
+                toserbaContainer.empty();
+
+                // Iterate through the sellers and append cards to the container
+                sellers.forEach(function (seller) {
+                    var cardHtml = `
+                        <div class="col">
+                            <div class="card">
+                                <!-- star icon -->
+                                <a href="#" onclick="favorit()" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
+                                    <i class="fa-regular fa-star position-absolute top-0 start-0 p-3 star-icon" style="font-size: 24px;"></i>
+                                </a>
+                                <img src="${seller.profile_pic_real}"
+                                    class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="text-center">${seller.toserbaname}</h5>`;
+
+                    // Conditionally include or exclude the description based on data availability
+                    if (seller.user_info) {
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.user_info}</p>`;
+                    } else {
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : </p>`;
+                    }
+
+                    // Conditionally include or exclude the phone number based on data availability
+                    if (seller.no_telp) {
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : ${seller.no_telp}</p>`;
+                    } else {
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : </p>`;
+                    }
+
+                    cardHtml += `
+                                    </div>
+                                    <div class="d-flex justify-content-around mb-5">
+                                        <a href="/user/${seller.toserbaname}" class="btn btn-secondary">Lihat</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    // Append the card HTML to the container
+                    toserbaContainer.append(cardHtml);
+                });
+            }
+
+            // Function to retrieve products from the server
+            function getProducts() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_produk",
+                    success: function (data) {
+                        updateProductList(data.produk_list);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching products:", error);
+                    }
+                });
+            }
+
+            // Function to update the DOM with the list of products
+            function updateProductList(products) {
+                var produkContainer = $("#produk");
+
+                // Clear existing content
+                produkContainer.empty();
+
+                // Iterate through the products and append cards to the container
+                products.forEach(function (product) {
+
+                    var cardHtml = `
+                    <div class="col">
+                        <div class="card">
+                            <!-- Use the product's image (replace with your actual image source) -->
+                            <div class="image-container" style="max-height: 80%; overflow: hidden;">
+                                <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">${product.namaBarang}</h5>
+                                <p class="card-name">${product.toserbaname}</p>
+                                <p class="card-text">${product.desc}</p>
+                                <p class="card-text">Rp. ${product.harga}</p>
+                                <p class="card-text">Tersisa ${product.jumlah}</p>
+                            </div>
+                            <div class="d-flex justify-content-around mb-3">
+                                <button onclick="addToMyList('${product.namaBarang}', ${product.harga}, '${product.toserbaname}')" class="btn btn-secondary">Tambah</button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    // Append the card HTML to the container
+                    produkContainer.append(cardHtml);
+                });
+            }
+
+            // Function to update MyList table
+            function updateMyListTable(mylistItems) {
+                var myListTableBody = $("#mylist tbody");
+                myListTableBody.empty(); // Clear existing content
+
+                var totalPrice = 0;
+
+                mylistItems.forEach(function (item, index) {
+                    var rowHtml = `
+                    <tr id="row-list">
+                        <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
+                        <td>${index + 1}</td>
+                        <td>Rp ${item.harga}</td>
+                        <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
+                    </tr>`;
+
+                    myListTableBody.append(rowHtml);
+
+                    // Calculate total price
+                    totalPrice += parseFloat(item.harga);
+                });
+
+                // Update the total price in the table footer
+                $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+            }
+
+            // Function to retrieve MyList items from the server
+            function getMyListItems() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_mylist",
+                    success: function (data) {
+                        updateMyListTable(data.mylist_items);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching MyList items:", error);
                     }
                 });
             }
 
             // Call the function to get sellers when the document is loaded
             getSellers();
+            getProducts();
+            getMyListItems();
         });
+
+        function deleteListItem(rowId) {
+            // Send an AJAX request to the server to delete the item
+            $.ajax({
+                type: "POST",
+                url: "/delete_from_mylist",
+                data: JSON.stringify({ rowId: rowId }),
+                contentType: "application/json;charset=UTF-8",
+                success: function (response) {
+                    console.log("Item deleted from MyList:", response);
+                    alert("berhasil dihapus")
+        
+                    // Remove the row from the table
+                    $("#mylist tbody tr[data-row-id='" + rowId + "']").remove();
+        
+                    // Update the total price in the table footer
+                    updateTotalPrice();
+                },
+                error: function (error) {
+                    console.error("Error deleting item from MyList:", error);
+                }
+            });
+        }
+        
+
+        var username = "{{ username }}" || null; // Use null if the username is not available
+        // ... (your existing script)
+
+        function favorit() {
+            event.preventDefault();
+
+            // Check if the user is logged in
+            if (!username) {
+                // If not logged in, show an alert and return
+                alert("Kamu harus login untuk menggunakan fitur ini.");
+                return;
+            }
+
+            // Get the product and seller IDs from data attributes
+            var productId = $(event.target).closest('.favorite-icon').data('product-id');
+            var sellerId = $(event.target).closest('.favorite-icon').data('seller-id');
+
+            // Toggle the star icon class
+            var starIcon = $(event.target).closest('.card').find('.fa-star');
+            starIcon.toggleClass('fa-regular fa-solid');
+
+
+            alert("Star Clicked!");
+        }
+
+        function addToMyList(namaProduk, harga, toserbaname) {
+            // Check if the user is logged in
+            if (!username) {
+                // If not logged in, show an alert and return
+                alert("Kamu harus login untuk menggunakan fitur ini.");
+                return;
+            }
+        
+            // Prepare the data to be sent to the server
+            var data = {
+                username: username,
+                namaProduk: namaProduk,
+                harga: harga,
+                toserbaname: toserbaname
+            };
+        
+            // Send the data to the server using AJAX
+            $.ajax({
+                type: "POST",
+                url: "/add_to_mylist",
+                data: JSON.stringify(data),
+                contentType: "application/json;charset=UTF-8",
+                success: function (response) {
+                    // Handle success (if needed)
+                    console.log("Product added to MyList:", response);
+        
+                    // Check if the product is already in the MyList
+                    var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
+        
+                    if (existingRow.length > 0) {
+                        // If the product is already in the MyList, update quantity and total price
+                        var existingQuantity = parseInt(existingRow.find('td:eq(1)').text());
+                        existingRow.find('td:eq(1)').text(existingQuantity + 1);
+        
+                        var existingPrice = parseFloat(existingRow.find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
+                        var newTotalPrice = existingPrice + harga;
+                        existingRow.find('td:eq(2)').text("Rp " + newTotalPrice.toFixed(2));
+                    } else {
+                        // If the product is not in the MyList, add a new row
+                        var rowHtml = `
+                            <tr id="row-list">
+                                <td>${namaProduk}
+                                    <br>
+                                    <p class="mylist-tokoname">${toserbaname}
+                                    </p>
+                                </td>
+                                <td>1</td>
+                                <td>Rp ${harga.toFixed(2)}</td>
+                            </tr>`;
+        
+                        // Append the new row to the MyList table
+                        $("#mylist tbody").append(rowHtml);
+                    }
+        
+                    // Update the total price in the table footer
+                    updateTotalPrice();
+                    alert("Berhasil di tambahkan!");
+                    location.reload(true)
+                    
+                },
+                error: function (error) {
+                    console.error("Error adding product to MyList:", error);
+                }
+            });
+        }
+        
+        // Function to update the total price in the table footer
+        function updateTotalPrice() {
+            var totalPrice = 0;
+        
+            $("#mylist tbody tr").each(function () {
+                var price = parseFloat($(this).find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
+                totalPrice += price;
+            });
+        
+            // Update the total price in the table footer
+            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+        }
+        
+
+        function getMyListItems() {
+            $.ajax({
+                type: "GET",
+                url: "/get_mylist",  // Adjust the URL based on your Flask route
+                success: function (data) {
+                    console.log("MyList Items:", data.mylist_items);
+                },
+                error: function (error) {
+                    console.error("Error fetching MyList items:", error);
+                }
+            });
+        }
+
+        getMyListItems();
+
+        function confirmLogout() {
+            // Show a confirmation alert
+            var confirmLogout = confirm("Are you sure you want to logout?");
+
+            // If the user confirms, redirect to the logout page
+            if (confirmLogout) {
+                window.location.href = "/logout";
+            }
+            alert("Kamu Sudah Logout");
+
+        }
+
+        function showAlert() {
+            alert("Please log in to use this feature.");
+        }
+
+        function showAlertProfile() {
+            alert("Please log in first.");
+        }
     </script>
+</head>
 
-    </head>
+<body>
+    <nav class="nav-container fixed-top">
+        <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
+        <div class="nav-link">
+            <a href="#" class="link-list">Home</a>
+            {% if username %}
+            <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
+                aria-controls="staticBackdrop">MyList</a>
+            {% else %}
+            <a href="#" class="link-list" onclick="showAlert()">MyList</a>
+            {% endif %}
+            {% if username %}
+            <a href="/myprofile/<username>" class="link-list">Profile</a>
+            {% else %}
+            <a href="#" class="link-list" onclick="showAlertProfile('Profile')">Profile</a>
+            {% endif %}
+        </div>
+        <div class="nav-logout">
+            {% if username %}
+            <a href="/logout" onclick="confirmLogout()" class="logout"><i
+                    class="fa-solid fa-arrow-right-from-bracket fa-lg" style="color: #000000;"></i></a>
+            {% else %}
+            <a href="/login" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
+                    style="color: #000000;"></i></a>
+            {% endif %}
+        </div>
+    </nav>
 
-    <body>
+    <div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active"
+                aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
 
-
-        <nav class="nav-container fixed-top">
-            <div class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="logo toko nusantara"
-                    style="max-height: 25px;"></div>
-            <div class="search" style="max-height: 25px; color:#000000;">
-                <input class="search-input" id="search" type="search" placeholder="mau cari apa?" onkeyup="ajax">
-                <i class="fa-solid fa-magnifying-glass fa-fade" style="color: #000000;"
-                    onclick="ambilValueDariSearch"></i>
-            </div>
-            <div class="nav-login">
-                <a class="login" href="/login"><i class="fa-solid fa-arrow-right-to-bracket fa-lg"
-                        style="color: #000000;"></i></a>
-            </div>
-        </nav>
-
-        <div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-                <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active"
-                    aria-current="true" aria-label="Slide 1"></button>
-                <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1"
-                    aria-label="Slide 2"></button>
-                <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2"
-                    aria-label="Slide 3"></button>
-            </div>
-
-            <div class="carousel-inner">
-                <div class="carousel-item active c-item">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                        class="d-block w-100 c-img" alt="Slide 1">
-                    <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                        <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                    </div>
-                </div>
-                <div class="carousel-item c-item">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                        class="d-block w-100 c-img" alt="Slide 2">
-                    <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                        <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                    </div>
-                </div>
-                <div class="carousel-item c-item">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                        class="d-block w-100 c-img" alt="Slide 3">
-                    <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                        <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                    </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active c-item">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                    class="d-block w-100 c-img" alt="Slide 1">
+                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
                 </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
+            <div class="carousel-item c-item">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                    class="d-block w-100 c-img" alt="Slide 2">
+                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+                </div>
+            </div>
+            <div class="carousel-item c-item">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
+                    class="d-block w-100 c-img" alt="Slide 3">
+                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
+                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <div class="container d-flex flex-wrap justify-content-center mt-5">
+        <div class="search" style="max-height: 50px; color:#000000; width: 60%;">
+            <input class="search-input" id="search" type="search" placeholder="mau cari apa?" onkeyup="ajax">
+            <i class="fa-solid fa-magnifying-glass fa-fade" style="color: #000000;" onclick="ambilValueDariSearch"></i>
+        </div>
+    </div>
+
+    <!-- sidebar -->
+    <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop"
+        aria-labelledby="staticBackdropLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="staticBackdropLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-flex flex-column align-items-center">
+                <figure class="figure">
+                    <img src="{{ url_for('static', filename='profile_placeholder.png') }}"
+                        class="figure-img img-fluid rounded" alt="...">
+                    <figcaption class="figure-caption">{{username}}
+                    </figcaption>
+                </figure>
+                <h5>MyList</h5>
+                <!-- card empty -->
+                <div class="card card-sidebar card-mylist-empty">
+                    <div class="card-body">
+                        <p class="card-text">
+                        <table id="mylist-empty" class="table">
+                            <div>ups...
+                                daftarmu masih
+                                kosongg</div>
+                        </table>
+                        </p>
+                    </div>
+                </div>
+                <!-- card -->
+                <div class="card card-sidebar card-mylist wider-card">
+                    <div class="card-body">
+                        <p class="card-text">
+                        <table id="mylist" class="table">
+                            <thead>
+                                <tr class="list-subtitle">
+                                    <th scope="col">Deskripsi</th>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Harga</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="row-list">
+                                    <td>Indomie</td>
+                                    <td>1</td>
+                                    <td>Rp3.000</td>
+                                </tr>
+                                <tr id="row-list">
+                                    <td>Elpiji</td>
+                                    <td>1</td>
+                                    <td>Rp17.000</td>
+                                </tr>
+                                <tr id="row-list">
+                                    <td>Fortune</td>
+                                    <td>2</td>
+                                    <td>Rp18.000</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>Total</td>
+                                    <td></td>
+                                    <td id="list-total-harga">Rp96.000</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        </p>
+                        <div class="btn-list">
+                            <button type="button" class="btn btn-secondary">Hapus</button>
+                            <button type="button" class="btn btn-secondary">Edit</button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="container d-flex flex-wrap justify-content-center mt-5">
+        <button type="button" id="Elektronik" class="btn btn-warning mx-3"
+            onclick="filterByCategory('Elektronik')">Elektronik</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3"
+            onclick="ambilData('Kecantikan')">Kecantikan</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3"
+            onclick="ambilData('Kebersihan')">Kebersihan</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Makanan')">Makanan</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Minuman')">Minuman</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3"
+            onclick="ambilData('Perabotan')">Perabotan</button>
+        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Sembako')">Sembako</button>
+    </div>
+
+
+    <div class="mycards">
+        <p>Rekomendasi Produk</p>
+        <div id="produk" class="row row-cols-1 row-cols-md-4 g-4">
+
+        </div>
+        <p>Rekomendasi Toko</p>
+        <div id="toserba" class="row row-cols-1 row-cols-md-4 g-4">
+
         </div>
 
 
 
-        <div class="container d-flex flex-wrap justify-content-center mt-5">
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Elektronik</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Kecantikan</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Kebersihan</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Makanan</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Minuman</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Perabotan</button>
-            <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilDataSemua">Sembako</button>
+        <div class="container">
+            <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+                <div class="col-md-4 d-flex align-items-center">
+                    <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+                        <img src="/static/logo.png" alt="" style="max-height: 25px;">
+                    </a>
+
+                </div>
+                <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
+                <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                    <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
+                                style="color: #f457c3;"></i></a></li>
+                    <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
+                                style="color: #eb2424;"></i></a></li>
+                    <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
+                                style="color: #0b53d0;"></i></a></li>
+
+                </ul>
+            </footer>
         </div>
-
-
-        <div class="mycards">
-            <p>Rekomendasi Produk</p>
-            <div class="row row-cols-1 row-cols-md-4 g-4">
-                <div class="col">
-                    <div class="card">
-                        <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                            class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Nama Barang</h5>
-                            <p class="card-text">Harga Barang</p>
-                        </div>
-                        <div class="d-flex justify-content-around mb-5">
-                            <button class="btn btn-secondary">tambah ke daftar</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                            class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Nama Barang</h5>
-                            <p class="card-text">Harga Barang</p>
-                        </div>
-                        <div class="d-flex justify-content-around mb-5">
-                            <button class="btn btn-secondary">tambah ke daftar</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                            class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Nama Barang</h5>
-                            <p class="card-text">Harga Barang</p>
-                        </div>
-                        <div class="d-flex justify-content-around mb-5">
-                            <button class="btn btn-secondary">tambah ke daftar</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                            class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Nama Barang</h5>
-                            <p class="card-text">Harga Barang</p>
-                        </div>
-                        <div class="d-flex justify-content-around mb-5">
-                            <button class="btn btn-secondary">tambah ke daftar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <p>Rekomendasi Toko</p>
-            <div id="toserba" class="row row-cols-1 row-cols-md-4 g-4">
-                <div class="col">
-                    <div class="card">
-                        <img src="https://icons.veryicon.com/png/o/miscellaneous/utility/logout-24.png"
-                            class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="text-center">Toserbaname</h5>
-                            <p class="text-center">Deskripsi</p>
-                        </div>
-                        <div class="d-flex justify-content-around mb-5">
-                            <button class="btn btn-secondary">lihat</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="container">
-                <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-                    <div class="col-md-4 d-flex align-items-center">
-                        <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
-                            <img src="/static/logo.png" alt="" style="max-height: 25px;">
-                        </a>
-
-                    </div>
-                    <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
-                    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-                        <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
-                                    style="color: #f457c3;"></i></a></li>
-                        <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
-                                    style="color: #eb2424;"></i></a></li>
-                        <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
-                                    style="color: #0b53d0;"></i></a></li>
-
-                    </ul>
-                </footer>
-            </div>
-            <!-- Bootstrap JavaScript Libraries -->
-            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
-                integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
-                crossorigin="anonymous">
-                </script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
-                integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz"
-                crossorigin="anonymous">
-                </script>
-        </div>
-    </body>
+    </div>
+</body>
 
 </html>

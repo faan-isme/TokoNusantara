@@ -132,7 +132,8 @@ def home():
         user_id = payload['id']
         
         if user_role == 'customer':
-            return render_template('homeCustomer.html', username=payload['username'])
+            data = db.users.find({'customer_id': user_id})
+            return render_template('index.html', username=payload['username'])
         elif user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
             return render_template('seller/homeSeller.html',data=data, msg=msg)
@@ -143,6 +144,9 @@ def home():
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
+
+    # apabila tidak ada login, hanya memuat laman tanpa payload
+    return render_template('index.html', msg=msg)
     
 #route profile 
 @app.route('/profile')
@@ -667,6 +671,149 @@ def upload_product_photo(product_photo, product_id):
     file_path = os.path.join("static", "foto_produk", f"{product_id}.{extension}")
     product_photo.save("./static/" + file_path)
     return file_path
-  
+
+# 16 Dec, utk mendisplay semua seller, pada laman home, baik visitor maupun sbg logged in customer
+# Add this route to get the list of sellers
+@app.route('/get_sellers', methods=['GET'])
+def get_sellers():
+    try:
+        # Fetch sellers from the database
+        sellers = db.users.find({"role": "seller"})
+        seller_list = []
+
+        # Create a list of seller details
+        for seller in sellers:
+            seller_details = {
+                "toserbaname": seller.get("toserbaname"),
+                "profile_info": seller.get("profile_info"),
+                "no_telp": seller.get("no_telp"),
+                "alamat": seller.get("alamat"),
+                "profile_pic_real": seller.get("profile_pic_real")
+            }
+            seller_list.append(seller_details)
+
+        return jsonify({"success": True, "sellers": seller_list})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/get_produk', methods=['GET'])
+def get_produk():
+    try:
+        # Fetch sellers from the database
+         # Mengambil data produk dari DB
+        produks = db.produk.find()
+        produk_list = []
+        
+        # Create a list of seller details
+        for produk in produks:
+            produk_details = {
+                "namaBarang": produk.get("namaBarang"),
+                "jumlah": produk.get("jumlah"),
+                "harga": produk.get("harga"),
+                "desc": produk.get("desc"),
+                "toserbaname": produk.get("toserbaname"),
+                "foto": produk.get("foto"),  
+                "kategori": produk.get("kategori")
+            }
+
+            
+            produk_list.append(produk_details)
+
+        return jsonify({"success": True, "produk_list": produk_list})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in get_produk route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/user/<toserbaname>')
+def seller_profile(toserbaname):
+    try:
+        # Fetch seller data based on toserbaname from the database
+        seller = db.users.find_one({"toserbaname": toserbaname, "role": "seller"})
+        
+        if seller:
+            # Extract necessary details from the seller data
+            username = seller.get("username", "No Username")
+            seller_id = seller.get("_id")
+
+            # Fetch products associated with the seller's toserbaname
+            products = db.produk.find({"seller_id": str(seller_id)})
+
+            # Render the seller profile page with the fetched data
+            return render_template('profileSeller_customerView.html', toserbaname=toserbaname, username=username, data=seller, products=products)
+        else:
+            # Handle case where seller not found
+            return render_template('profileSeller_customerView.html', toserbaname=toserbaname, username="No Username", data=None, products=[])
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in seller_profile route: {e}")
+        return render_template('error.html', error_message="An error occurred while fetching seller profile.")
+
+@app.route('/add_to_mylist', methods=['POST'])
+def add_to_mylist():
+    try:
+        # Get the JSON data from the request
+        data = request.json
+
+        # Extract relevant information from the JSON data
+        username = data.get('username')
+        namaProduk = data.get('namaProduk')
+        harga = data.get('harga')
+        toserbaname = data.get('toserbaname')
+
+        mylist_doc = {
+            'username': username,
+            'namaProduk': namaProduk,
+            'harga': harga,
+            'toserbaname': toserbaname
+        }
+        db.mylist.insert_one(mylist_doc)
+
+        # Return a success response to the client
+        return jsonify({"success": True, "message": "Product added to MyList successfully"})
+    
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in add_to_mylist route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/get_mylist', methods=['GET'])
+def get_mylist():
+    try:
+        # Get the currently logged-in user's username from the JWT token
+        token_receive = request.cookies.get('token')
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        username = payload.get('username')
+
+        # Fetch mylist data for the logged-in user from the database
+        mylist_data = db.mylist.find({'username': username})
+
+        # Create a list to store mylist items
+        mylist_items = []
+
+        # Iterate through mylist data and extract relevant information
+        for item in mylist_data:
+            mylist_item = {
+                'username': item.get('username'),
+                'namaProduk': item.get('namaProduk'),
+                'harga': item.get('harga'),
+                'toserbaname': item.get('toserbaname')
+            }
+            mylist_items.append(mylist_item)
+
+        # Return the mylist data as a JSON response
+        return jsonify({"success": True, "mylist_items": mylist_items})
+    
+    except jwt.ExpiredSignatureError:
+        return jsonify({"success": False, "message": "Token has expired"})
+    except jwt.exceptions.DecodeError:
+        return jsonify({"success": False, "message": "Error decoding token"})
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in get_mylist route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
