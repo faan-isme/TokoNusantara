@@ -25,7 +25,7 @@
     <!-- jquery -->
     <script src="https://code.jquery.com/jquery-3.6.0.js"
         integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <script src='{{ url_for("static", filename="style.css") }}' ></script>
+    <script src='{{ url_for("static", filename="style.css") }}'></script>
     <!-- font-awsome -->
     <script src="https://kit.fontawesome.com/2efb8198c8.js" crossorigin="anonymous"></script>
     {% block style %}{% endblock %}
@@ -50,10 +50,29 @@
             <a href="#" class="link-list active">Profile</a> -->
         </div>
         <div class="nav-logout">
-            <a href="/logout" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
+            <a type="button" class="logout" data-bs-target="#logoutKonfirmasi" data-bs-toggle="modal"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
                     style="color: #000000;"></i></a>
         </div>
     </nav>
+    <div class="modal fade" id="logoutKonfirmasi" aria-hidden="true" aria-labelledby="logoutTitle"
+        tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="logoutTitle">Konfirmasi Logout</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apakah anda yakin ingin logout ?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-warning " data-bs-dismiss="modal" type="button"
+                        onclick="window.location.href = '/logout';">Konfirmasi</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% block konten %}
 
