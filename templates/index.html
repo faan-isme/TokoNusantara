@@ -204,23 +204,23 @@
                                 <a href="#" onclick="favorit()" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
                                     <i class="fa-regular fa-star position-absolute top-0 start-0 p-3 star-icon" style="font-size: 24px;"></i>
                                 </a>
-                                <img src="${seller.profile_pic_real}"
+                                <img src="/static/${seller.profile_pic_real}"
                                     class="card-img-top" alt="...">
                                 <div class="card-body">
                                     <h5 class="text-center">${seller.toserbaname}</h5>`;
 
                     // Conditionally include or exclude the description based on data availability
-                    if (seller.user_info) {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.user_info}</p>`;
+                    if (seller.profile_info) {
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.profile_info}</p>`;
                     } else {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : </p>`;
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : -</p>`;
                     }
 
                     // Conditionally include or exclude the phone number based on data availability
                     if (seller.no_telp) {
                         cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : ${seller.no_telp}</p>`;
                     } else {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : </p>`;
+                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : -</p>`;
                     }
 
                     cardHtml += `
@@ -527,44 +527,40 @@
 
     <div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active"
-                aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active" aria-current="true"
+            aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
         </div>
-
         <div class="carousel-inner">
-            <div class="carousel-item active c-item">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                    class="d-block w-100 c-img" alt="Slide 1">
-                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                </div>
-            </div>
-            <div class="carousel-item c-item">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                    class="d-block w-100 c-img" alt="Slide 2">
-                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                </div>
-            </div>
-            <div class="carousel-item c-item">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmU-8_kFHcCrOoGxKy6osxgOk6Ecs_lE-Z3EKyxw34YB_WXjsv8NFRFPRysP-BeLyebEo&usqp=CAU"
-                    class="d-block w-100 c-img" alt="Slide 3">
-                <div class="carousel-caption top-0 mt-5 d-none d-md-block">
-                    <h1 class="display-1 fw-bolder text-capitalize">Text Heading</h1>
-                </div>
-            </div>
+          <div class="carousel-item active c-item">
+            <img
+              src="{{ url_for('static', filename='img/carousel-home-1.png') }}"
+              class="d-block w-100 c-img" alt="Slide 1">
+            
+          </div>
+          <div class="carousel-item c-item">
+            <img
+              src="{{ url_for('static', filename='img/carousel-home-2.png') }}"
+              class="d-block w-100 c-img" alt="Slide 2">
+            
+          </div>
+          <div class="carousel-item c-item">
+            <img
+              src="{{ url_for('static', filename='img/carousel-home-3.png') }}"
+              class="d-block w-100 c-img" alt="Slide 3">
+            
+          </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
         </button>
-    </div>
+      </div>
 
     <div class="container d-flex flex-wrap justify-content-center mt-5">
         <div class="search" style="max-height: 50px; color:#000000; width: 60%;">
