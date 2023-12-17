@@ -314,25 +314,37 @@ def editProfile():
 def get_products():
     kategori = request.args.get('category')
     token_receive = request.cookies.get('token')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-        user_role = payload['role']
-        user_id = payload['id']
-        
-        if user_role == 'seller':
-            if kategori== 'Semua':
-                posts = list(db.produk.find({'seller_id':user_id}))
-                for post in posts:
-                    post["_id"]=str(post["_id"])
-                return jsonify(
-                    {
-                        "result": "success",
-                        "posts": posts
-                        
-                    }
-                )
+    if token_receive:
+        try:
+            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            user_role = payload['role']
+            user_id = payload['id']
+            
+            if user_role == 'seller':
+                if kategori== 'Semua':
+                    posts = list(db.produk.find({'seller_id':user_id}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    )
+                else:
+                    posts = list(db.produk.find({'seller_id':user_id, 'kategori':kategori}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    )
             else:
-                posts = list(db.produk.find({'seller_id':user_id, 'kategori':kategori}))
+                posts = list(db.produk.find({'kategori':kategori}))
                 for post in posts:
                     post["_id"]=str(post["_id"])
                 return jsonify(
@@ -341,14 +353,22 @@ def get_products():
                         "posts": posts
                         
                     }
-                )
-        else:
-            return redirect(url_for('login',msg='Role tidak sesuai!'))   
-    except jwt.ExpiredSignatureError:
-        return redirect(url_for("login", msg="Token telah kadaluarsa"))
-    except jwt.exceptions.DecodeError:
-        return redirect(url_for("login", msg="Terjadi masalah saat login"))
-
+                )  
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for("login", msg="Token telah kadaluarsa"))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="Terjadi masalah saat login"))
+        
+    posts = list(db.produk.find({'kategori':kategori}))
+    for post in posts:
+        post["_id"]=str(post["_id"])
+    return jsonify(
+        {
+            "result": "success",
+            "posts": posts
+            
+        }
+    )  
 
 # route jual
 @app.route('/jual', methods=['POST'])

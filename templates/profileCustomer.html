@@ -148,14 +148,14 @@
     </style>
     <script>
 
-        /* Di komen dulu, error soalnya
+      
 
         {% if msg %}
         alert('{{msg}}')
         window.location.href = '/profile'
         {% endif %}
 
-        */
+  
 
         $(document).ready(function () {
 
@@ -213,10 +213,10 @@
         <br>
         <div class="container-sm d-flex justify-content-center flex-wrap">
             <figure class="figure">
-                <img src="/home/herald/TokoNusantara/static/profile_placeholder.png"
+                <img src="{{ url_for('static', filename=data['profile_pic_real']) }}"
                     class="figure-img img-fluid rounded" alt="...">
                 <div class=" profileimg flex-warp flex-column d-flex align-items-center flex-center">
-                    <h5>{{data['customer_name']}}</h5>
+                    <h5>{{data['username']}}</h5>
 
                     <div>
                         <a href="mailto:{{data['email']}}" style="text-decoration: none;">{{data['email']}}</a>
@@ -416,9 +416,9 @@
                     <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
 
                         <div class="mb-3">
-                            <label for="newCustomerName" class="form-label">New Username</label>
-                            <input type="text" class="form-control" id="newCustomerName" name="customername"
-                                value="{{data['customername']}}">
+                            <label for="newCustomerName" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="newCustomerName" name="username"
+                                value="{{data['username']}}">
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
@@ -435,23 +435,9 @@
 
                         </div>
                         <div class="mb-3">
-                            <label for="no_telp" class="form-label">No Telepon/WA </label>
-                            <input class="form-control" type="text" id="no_telp" name="no_telp"
-                                value="{{data['no_telp']}}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="alamat" class="form-label">Link google Map </label>
-                            <input class="form-control" type="url" id="alamat" name="alamat" value="{{data['alamat']}}">
-                        </div>
-                        <div class="mb-3">
                             <label for="foto" class="form-label">Foto </label>
                             <input class="form-control" type="file" id="foto" name="foto"
                                 value="{{data['profile_pic']}}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="deskripsi" class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="deskripsi" rows="3"
-                                name="desc">{{data['profile_info']}}</textarea>
                         </div>
                     </form>
                 </div>

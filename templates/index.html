@@ -263,7 +263,6 @@
                     var cardHtml = `
                     <div class="col">
                         <div class="card">
-                            <!-- Use the product's image (replace with your actual image source) -->
                             <div class="image-container" style="max-height: 80%; overflow: hidden;">
                                 <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
                             </div>
@@ -285,50 +284,50 @@
                 });
             }
 
-            // Function to update MyList table
-            function updateMyListTable(mylistItems) {
-                var myListTableBody = $("#mylist tbody");
-                myListTableBody.empty(); // Clear existing content
+            // // Function to update MyList table
+            // function updateMyListTable(mylistItems) {
+            //     var myListTableBody = $("#mylist tbody");
+            //     myListTableBody.empty(); // Clear existing content
 
-                var totalPrice = 0;
+            //     var totalPrice = 0;
 
-                mylistItems.forEach(function (item, index) {
-                    var rowHtml = `
-                    <tr id="row-list">
-                        <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
-                        <td>${index + 1}</td>
-                        <td>Rp ${item.harga}</td>
-                        <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
-                    </tr>`;
+            //     mylistItems.forEach(function (item, index) {
+            //         var rowHtml = `
+            //         <tr id="row-list">
+            //             <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
+            //             <td>${index + 1}</td>
+            //             <td>Rp ${item.harga}</td>
+            //             <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
+            //         </tr>`;
 
-                    myListTableBody.append(rowHtml);
+            //         myListTableBody.append(rowHtml);
 
-                    // Calculate total price
-                    totalPrice += parseFloat(item.harga);
-                });
+            //         // Calculate total price
+            //         totalPrice += parseFloat(item.harga);
+            //     });
 
-                // Update the total price in the table footer
-                $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
-            }
+            //     // Update the total price in the table footer
+            //     $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+            // }
 
-            // Function to retrieve MyList items from the server
-            function getMyListItems() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_mylist",
-                    success: function (data) {
-                        updateMyListTable(data.mylist_items);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching MyList items:", error);
-                    }
-                });
-            }
+            // // Function to retrieve MyList items from the server
+            // function getMyListItems() {
+            //     $.ajax({
+            //         type: "GET",
+            //         url: "/get_mylist",
+            //         success: function (data) {
+            //             updateMyListTable(data.mylist_items);
+            //         },
+            //         error: function (error) {
+            //             console.error("Error fetching MyList items:", error);
+            //         }
+            //     });
+            // }
 
             // Call the function to get sellers when the document is loaded
             getSellers();
             getProducts();
-            getMyListItems();
+            // getMyListItems();
         });
 
         function deleteListItem(rowId) {
@@ -460,7 +459,7 @@
         }
         
 
-        function getMyListItems() {
+        {/* function getMyListItems() {
             $.ajax({
                 type: "GET",
                 url: "/get_mylist",  // Adjust the URL based on your Flask route
@@ -473,7 +472,7 @@
             });
         }
 
-        getMyListItems();
+        getMyListItems(); */}
 
         function confirmLogout() {
             // Show a confirmation alert
@@ -494,6 +493,51 @@
         function showAlertProfile() {
             alert("Please log in first.");
         }
+
+        function kategori(id){
+            // Get the id of the clicked link
+            var category = id.split("Link")[0];
+
+            // Send an AJAX request to the server to get product data
+            $.ajax({
+                type: "GET",
+                url: "/get_products",
+                data: {category: category},
+                success: function(response){
+                    if (response["result"] === "success") {
+                        $("#post-box").empty();
+                        let posts = response["posts"];
+                        for (let i = 0; i < posts.length; i++) {
+                            let post = posts[i];
+                            let html_temp =`
+                                            
+
+                            <div class="col">
+                                <div class="card">
+                                    <div class="image-container" style="max-height: 80%; overflow: hidden;">
+                                        <img src="/static/${post['foto']}" class="card-img-top" alt="Product Image">
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${post['namaBarang']}</h5>
+                                        <p class="card-name">${post['toserbaname']}</p>
+                                        <p class="card-text">${post['desc']}</p>
+                                        <p class="card-text">Rp. ${post['harga']}</p>
+                                        <p class="card-text">Tersisa ${post['jumlah']}</p>
+                                    </div>
+                                    <div class="d-flex justify-content-around mb-3">
+                                        <button onclick="addToMyList('${post['namaBarang']}', ${post['harga']}, '${post['toserbaname']}')" class="btn btn-warning " style="width:95%">Tambah</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            `;
+                            $("#post-box").append(html_temp);
+    
+                        }
+                    }
+                }
+            });
+        };
     </script>
 </head>
 
@@ -647,19 +691,19 @@
     </div>
 
     <div class="container d-flex flex-wrap justify-content-center mt-5">
-        <button type="button" id="Elektronik" class="btn btn-warning mx-3"
-            onclick="filterByCategory('Elektronik')">Elektronik</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3"
-            onclick="ambilData('Kecantikan')">Kecantikan</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3"
-            onclick="ambilData('Kebersihan')">Kebersihan</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Makanan')">Makanan</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Minuman')">Minuman</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3"
-            onclick="ambilData('Perabotan')">Perabotan</button>
-        <button type="button" id="Semua" class="btn btn-warning mx-3" onclick="ambilData('Sembako')">Sembako</button>
+        <button type="button" id="ElektronikLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Elektronik</button>
+        <button type="button" id="KecantikanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Kecantikan</button>
+        <button type="button" id="KebersihanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Kebersihan</button>
+        <button type="button" id="MakananLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Makanan</button>
+        <button type="button" id="MinumanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Minuman</button>
+        <button type="button" id="PerabotanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Perabotan</button>
+        <button type="button" id="SembakoLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Sembako</button>
     </div>
+    <div class="container my-3">
+        <div id="post-box" class="row row-cols-1 row-cols-md-4 g-4">
 
+        </div>
+    </div>
 
     <div class="mycards">
         <p>Rekomendasi Produk</p>
