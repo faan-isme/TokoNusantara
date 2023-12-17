@@ -847,19 +847,35 @@ def add_to_favorites():
         toserbaname = data.get('toserbaname')
         sellerId = data.get('sellerId')
 
-        # Generate a unique ID for the user (you may use a different approach for uniqueness)
-        user_id = str(ObjectId())
+        existing_favorite = db.myfavorite.find_one({'username': username, 'toserbaname': toserbaname})
+
+        if existing_favorite:
+            return jsonify({"success": False, "message": "Seller is already in favorites"})
 
         # Store the favorite information in the myfavorite collection
         favorite_doc = {
-            'user_id': user_id,
+            'username': username,
             'toserbaname': toserbaname,
             'sellerId': sellerId,
         }
-        db.myfavorite.insert_one(favorite_doc)
+        
+        # insert apabila belum ada
+        db.myfavorite.update_one(
+            {'username': username, 'toserbaname': toserbaname},
+            {'$set': favorite_doc},
+            upsert=True
+        )
 
         # Update the user's ID in the users collection
-        db.users.update_one({'username': username}, {'$set': {'user_id': user_id}}, upsert=True)
+        db.users.update_one({'username': username}, {'$set': {'user_id': sellerId}}, upsert=True)
+
+                # Insert the document only if it doesn't already exist
+        db.myfavorite.update_one(
+            {'username': username, 'toserbaname': toserbaname},
+            {'$set': favorite_doc},
+            upsert=True
+        )
+
 
         # Return a success response to the client
         return jsonify({"success": True, "message": "Seller added to favorites successfully"})
@@ -869,6 +885,62 @@ def add_to_favorites():
         print(f"Error in add_to_favorites route: {e}")
         return jsonify({"success": False, "message": str(e)})
 
+
+@app.route('/delete_favorite', methods=['POST'])
+def delete_favorite():
+    try:
+        # Get the JSON data from the request
+        data = request.json
+
+        # Extract relevant information from the JSON data
+        username = data.get('username')  # You may need to adjust this based on your actual data structure
+        toserbaname = data.get('toserbaname')
+
+        # Delete the favorite item from the myfavorite collection
+        db.myfavorite.delete_one({'username': username, 'toserbaname': toserbaname})
+
+        # Return a success response to the client
+        return jsonify({"success": True, "message": "Favorite item deleted successfully"})
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in delete_favorite route: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/get_myfavorites', methods=['GET'])
+def get_myfavorites():
+    try:
+        # Get the currently logged-in user's username from the JWT token
+        token_receive = request.cookies.get('token')
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        username = payload.get('username')
+
+        # Fetch favorite data for the logged-in user from the database
+        favorites_data = db.myfavorite.find({'username': username})
+
+        # Create a list to store favorite items
+        favorite_items = []
+
+        # Iterate through favorite data and extract relevant information
+        for item in favorites_data:
+            favorite_item = {
+                'username': item.get('username'),
+                'toserbaname': item.get('toserbaname'),
+                'sellerId': item.get('sellerId'),
+            }
+            favorite_items.append(favorite_item)
+
+        # Return the favorite data as a JSON response
+        return jsonify({"success": True, "favorite_items": favorite_items})
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"success": False, "message": "Token has expired"})
+    except jwt.exceptions.DecodeError:
+        return jsonify({"success": False, "message": "Error decoding token"})
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in get_myfavorites route: {e}")
+        return jsonify({"success": False, "message": str(e)})
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)

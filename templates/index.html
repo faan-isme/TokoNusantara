@@ -145,6 +145,15 @@
             text-align: center;
         }
 
+        .card-favorite {
+            margin: 10px 20px 10px 20px;
+            padding: 100px 0 100px 0;
+            background: white;
+            border-radius: 5%;
+            text-align: center;
+        }
+
+
         .fa-trash-can {
             color: gray;
         }
@@ -159,7 +168,94 @@
         }
     </style>
     <script>
+        
+        function deleteFavoriteItem(toserbaname) {
+            $.ajax({
+                type: "POST", // Use POST method for deletion
+                url: "/delete_favorite", // Replace with your actual delete endpoint
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    username: username,
+                    toserbaname: toserbaname
+                }),
+                success: function (data) {
+                    if (data.success) {
+                        // If deletion is successful, update the UI
+                        getMyFavoriteItems();
+                        console.log("Favorite item deleted:", toserbaname);
+                    } else {
+                        console.error("Error deleting favorite item:", data.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Error deleting favorite item:", error);
+                }
+            });
+        }
+
+        function getMyFavoriteItems() {
+            $.ajax({
+                type: "GET",
+                url: "/get_myfavorites",
+                success: function (data) {
+                    if (data.success) {
+                        // If the request is successful, update the UI
+                        updateMyFavoriteList(data.favorite_items);
+                        console.log("myfavorite", data.favorite_items);
+                    } else {
+                        console.error("Error fetching MyFavorite items:", data.message);
+                    }
+                },
+                error: function (error) {
+                    console.error("Error fetching MyFavorite items:", error);
+                }
+            });
+        }
+
+        // Declare updateMyFavoriteList globally
+        function updateMyFavoriteList(myfavoriteItems) {
+            var myFavoriteTableBody = $("#myfavorite tbody");
+
+            // Clear existing content
+            myFavoriteTableBody.empty();
+
+            // Keep track of toserbanames to avoid duplicates
+            var toserbanameSet = new Set();
+
+            // Iterate through myfavoriteItems and append rows to the table
+            myfavoriteItems.forEach(function (item) {
+                // mengecek apabila ada duplikasi
+                if (!toserbanameSet.has(item.toserbaname)) {
+                    var rowHtml = `
+                <tr>
+                    <td><a href="/user/${item.toserbaname}">${item.toserbaname}</a></td>                     
+                    <td><a href="#" onclick="deleteFavoriteItem('${item.toserbaname}')"><i class="fa-solid fa-trash-can"></i></a></td>   
+                </tr>`;
+                    myFavoriteTableBody.append(rowHtml);
+
+                    // Add toserbaname to the set to track duplicates
+                    toserbanameSet.add(item.toserbaname);
+                }
+            });
+        }
+
+        // Function to update the DOM with the favorite status
+        function updateFavoriteStatus(favoriteStatus) {
+            favoriteStatus.forEach(function (status) {
+                var card = $(`.card[data-product-id="${status.productId}"][data-seller-id="${status.sellerId}"]`);
+                var starIcon = card.find('.fa-star');
+
+                // Update the star icon class based on the favorite status
+                if (status.favoriteStatus) {
+                    starIcon.addClass('fa-solid').removeClass('fa-regular');
+                } else {
+                    starIcon.addClass('fa-regular').removeClass('fa-solid');
+                }
+            });
+        }
+
         $(document).ready(function () {
+            getMyFavoriteItems()
             // Function to retrieve sellers from the server
             function getSellers() {
                 $.ajax({
@@ -172,20 +268,7 @@
                         console.error("Error fetching sellers:", error);
                     }
                 });
-                // Function to update the DOM with the favorite status
-                function updateFavoriteStatus(favoriteStatus) {
-                    favoriteStatus.forEach(function (status) {
-                        var card = $(`.card[data-product-id="${status.productId}"][data-seller-id="${status.sellerId}"]`);
-                        var starIcon = card.find('.fa-star');
 
-                        // Update the star icon class based on the favorite status
-                        if (status.favoriteStatus) {
-                            starIcon.addClass('fa-solid').removeClass('fa-regular');
-                        } else {
-                            starIcon.addClass('fa-regular').removeClass('fa-solid');
-                        }
-                    });
-                }
             }
 
             // Function to update the DOM with the list of sellers
@@ -194,6 +277,7 @@
 
                 // Clear existing content
                 toserbaContainer.empty();
+                
 
                 // Iterate through the sellers and append cards to the container
                 sellers.forEach(function (seller) {
@@ -287,7 +371,32 @@
                 });
             }
 
-            // // Function to update MyList table
+            // Function to retrieve MyList items from the server
+            function getMyListItems() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_mylist",
+                    success: function (data) {
+                        if (data.success) {
+                            // If the request is successful, update the MyList table
+                            updateMyListTable(data.mylist_items);
+                        } else {
+                            // Handle the case where the request was not successful
+                            console.error("Error fetching MyList items:", data.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.error("Error fetching MyList items:", error);
+                    }
+                });
+            }
+
+            // Call the function to get sellers when the document is loaded
+            getSellers();
+            getProducts();
+            getMyListItems();
+
+            // Function to update MyList table
             function updateMyListTable(mylistItems) {
                 var myListTableBody = $("#mylist tbody");
                 myListTableBody.empty(); // Clear existing content
@@ -311,32 +420,13 @@
                 // Update the total price in the table footer
                 $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
             }
-
-            // Function to retrieve MyList items from the server
-            function getMyListItems() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_mylist",
-                    success: function (data) {
-                        updateMyListTable(data.mylist_items);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching MyList items:", error);
-                    }
-                });
-            }
-
-            // Call the function to get sellers when the document is loaded
-            getSellers();
-            getProducts();
-            // getMyListItems();
         });
 
         function deleteListItem(rowId) {
             // Send an AJAX request to the server to delete the item
             $.ajax({
                 type: "POST",
-                url: "/delete_from_mylist",
+                url: "/delete_favorite",
                 data: JSON.stringify({ rowId: rowId }),
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
@@ -389,9 +479,13 @@
                 data: JSON.stringify(data),
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
-                    // Handle success (if needed)
-                    console.log("Seller added to favorites:", response);
-                    alert("Toko ditambahkan ke favorit!");
+                    if (response.success) {
+                        console.log("Seller added to favorites successfully");
+                        alert("Toko ditambahkan ke MyList");
+                        getMyFavoriteItems();
+                    } else {
+                        alert("Error adding seller to favorites: " + response.message);
+                    }
                 },
                 error: function (error) {
                     console.error("Error adding seller to favorites:", error);
@@ -423,7 +517,7 @@
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
                     // Handle success (if needed)
-                    console.log("Product added to MyList:", response);
+                    alert("Product added to MyList:", response);
 
                     // Check if the product is already in the MyList
                     var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
@@ -700,6 +794,30 @@
                             <button type="button" class="btn btn-secondary">Hapus</button>
                             <button type="button" class="btn btn-secondary">Edit</button>
                         </div>
+                    </div>
+                </div>
+                <div class="card card-sidebar card-myfavorite wider-card">
+                    <div class="card-body">
+                        <p class="card-text">
+                        <table id="myfavorite" class="table">
+                            <thead>
+                                <tr class="list-subtitle">
+                                    <th scope="col">Toko Favoritku</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody>
+                                {% for item in myfavoriteItems %}
+                                <tr>
+                                    <td>{{ item.toserbaname }}</td>
+
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+
+                        </table>
+                        </p>
                     </div>
                 </div>
 
