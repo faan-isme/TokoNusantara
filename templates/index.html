@@ -160,177 +160,164 @@
     </style>
     <script>
         $(document).ready(function () {
-            // Function to retrieve sellers from the server
-            function getSellers() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_sellers",
-                    success: function (data) {
-                        updateSellerList(data.sellers);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching sellers:", error);
-                    }
-                });
-                // Function to update the DOM with the favorite status
-                function updateFavoriteStatus(favoriteStatus) {
-                    favoriteStatus.forEach(function (status) {
-                        var card = $(`.card[data-product-id="${status.productId}"][data-seller-id="${status.sellerId}"]`);
-                        var starIcon = card.find('.fa-star');
-
-                        // Update the star icon class based on the favorite status
-                        if (status.favoriteStatus) {
-                            starIcon.addClass('fa-solid').removeClass('fa-regular');
-                        } else {
-                            starIcon.addClass('fa-regular').removeClass('fa-solid');
-                        }
-                    });
-                }
-            }
-
-            // Function to update the DOM with the list of sellers
-            function updateSellerList(sellers, favoriteStatus) {
-                var toserbaContainer = $("#toserba");
-
-                // Clear existing content
-                toserbaContainer.empty();
-
-                // Iterate through the sellers and append cards to the container
-                sellers.forEach(function (seller) {
-                    var cardHtml = `
-                        <div class="col">
-                            <div class="card" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
-                                <!-- star icon -->
-                                <a href="#" onclick="favorit(event, '${seller.sellerId}')" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
-
-                                    <i class="fa-regular fa-star position-absolute top-0 start-0 p-3 star-icon" style="font-size: 24px;"></i>
-                                </a>
-                                <img src="/static/${seller.profile_pic_real}"
-                                    class="card-img-top" alt="...">
-                                <div class="card-body">
-                                    <h5 class="text-center">${seller.toserbaname}</h5>`;
 
 
-                    // Conditionally include or exclude the description based on data availability
-                    if (seller.profile_info) {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.profile_info}</p>`;
-                    } else {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : -</p>`;
-                    }
-
-                    // Conditionally include or exclude the phone number based on data availability
-                    if (seller.no_telp) {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : ${seller.no_telp}</p>`;
-                    } else {
-                        cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : -</p>`;
-                    }
-
-                    cardHtml += `
-                                    </div>
-                                    <div class="d-flex justify-content-around mb-5">
-                                        <a href="/user/${seller.toserbaname}" class="btn btn-secondary">Lihat</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
-                    // Append the card HTML to the container
-                    toserbaContainer.append(cardHtml);
-                });
-            }
 
 
-            // Function to retrieve products from the server
-            function getProducts() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_produk",
-                    success: function (data) {
-                        updateProductList(data.produk_list);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching products:", error);
-                    }
-                });
-            }
 
-            // Function to update the DOM with the list of products
-            function updateProductList(products) {
-                var produkContainer = $("#produk");
 
-                // Clear existing content
-                produkContainer.empty();
 
-                // Iterate through the products and append cards to the container
-                products.forEach(function (product) {
-
-                    var cardHtml = `
-                    <div class="col">
-                        <div class="card">
-                            <div class="image-container" style="max-height: 80%; overflow: hidden;">
-                                <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">${product.namaBarang}</h5>
-                                <p class="card-name">${product.toserbaname}</p>
-                                <p class="card-text">${product.desc}</p>
-                                <p class="card-text">Rp. ${product.harga}</p>
-                                <p class="card-text">Tersisa ${product.jumlah}</p>
-                            </div>
-                            <div class="d-flex justify-content-around mb-3">
-                                <button onclick="addToMyList('${product.namaBarang}', ${product.harga}, '${product.toserbaname}')" class="btn btn-secondary">Tambah</button>
-                            </div>
-                        </div>
-                    </div>`;
-
-                    // Append the card HTML to the container
-                    produkContainer.append(cardHtml);
-                });
-            }
-
-            // // Function to update MyList table
-            function updateMyListTable(mylistItems) {
-                var myListTableBody = $("#mylist tbody");
-                myListTableBody.empty(); // Clear existing content
-
-                var totalPrice = 0;
-
-                mylistItems.forEach(function (item, index) {
-                    var rowHtml = `
-                     <tr id="row-list">
-                         <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
-                         <td>${index + 1}</td>
-                         <td>Rp ${item.harga}</td>
-                         <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
-                     </tr>`;
-                    myListTableBody.append(rowHtml);
-
-                    // Calculate total price
-                    totalPrice += parseFloat(item.harga);
-                });
-
-                // Update the total price in the table footer
-                $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
-            }
-
-            // Function to retrieve MyList items from the server
-            function getMyListItems() {
-                $.ajax({
-                    type: "GET",
-                    url: "/get_mylist",
-                    success: function (data) {
-                        updateMyListTable(data.mylist_items);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching MyList items:", error);
-                    }
-                });
-            }
 
             // Call the function to get sellers when the document is loaded
             getSellers();
             getProducts();
             // getMyListItems();
         });
+        function getSellers() {
+            $.ajax({
+                type: "GET",
+                url: "/get_sellers",
+                success: function (response) {
+                    if (response["result"] === "success") {
+                        var toserbaContainer = $("#toserba");
+                        toserbaContainer.empty()
+                        let sellers = response["sellers"];
+                        for (let i = 0; i < sellers.length; i++) {
+                            let seller = sellers[i];
+                            var cardHtml = `
+                                            <div class="col">
+                                                <div class="card"  data-seller-id="${seller.seller_id}">
+                                                    <!-- star icon -->
+                                                    <a href="#" onclick="favorit(event, '${seller.seller_id}')" >
+
+                                                        <i class="${seller.favorit === 'yes' ? 'fa-solid' : 'fa-regular'}  fa-star position-absolute top-0 start-0 p-3 star-icon" style="font-size: 24px; color:rgb(255, 215, 34)"></i>
+                                                    </a>
+                                                    <img src="/static/${seller.profile_pic_real}"
+                                                        class="card-img-top" alt="...">
+                                                    <div class="card-body">
+                                                        <h5 class="text-center">${seller.toserbaname}</h5>`;
+
+
+                                                // Conditionally include or exclude the description based on data availability
+                                                if (seller.profile_info) {
+                                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.profile_info}</p>`;
+                                                } else {
+                                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : -</p>`;
+                                                }
+
+                                                // Conditionally include or exclude the phone number based on data availability
+                                                if (seller.no_telp) {
+                                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : ${seller.no_telp}</p>`;
+                                                } else {
+                                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : -</p>`;
+                                                }
+
+                                                cardHtml += `
+                                                        </div>
+                                                        <div class="d-flex justify-content-around mb-5">
+                                                            <a href="/user/${seller.toserbaname}" class="btn btn-secondary">Lihat</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>`;
+                            
+                            toserbaContainer.append(cardHtml);
+                        }
+                    } else {
+                        alert("Data gagal dimuat")
+                        window.location.reload()
+                    }
+                }
+            });
+
+            
+        }
+                    // Function to retrieve products from the server
+                    function getProducts() {
+                        $.ajax({
+                            type: "GET",
+                            url: "/get_produk",
+                            success: function (data) {
+                                updateProductList(data.produk_list);
+                            },
+                            error: function (error) {
+                                console.error("Error fetching products:", error);
+                            }
+                        });
+                    }
+        
+                    // Function to update the DOM with the list of products
+                    function updateProductList(products) {
+                        var produkContainer = $("#produk");
+        
+                        // Clear existing content
+                        produkContainer.empty();
+        
+                        // Iterate through the products and append cards to the container
+                        products.forEach(function (product) {
+        
+                            var cardHtml = `
+                            <div class="col">
+                                <div class="card">
+                                    <div class="image-container" style="max-height: 80%; overflow: hidden;">
+                                        <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.namaBarang}</h5>
+                                        <p class="card-name">${product.toserbaname}</p>
+                                        <p class="card-text">${product.desc}</p>
+                                        <p class="card-text">Rp. ${product.harga}</p>
+                                        <p class="card-text">Tersisa ${product.jumlah}</p>
+                                    </div>
+                                    <div class="d-flex justify-content-around mb-3">
+                                        <button onclick="addToMyList('${product.namaBarang}', ${product.harga}, '${product.toserbaname}')" class="btn btn-secondary">Tambah</button>
+                                    </div>
+                                </div>
+                            </div>`;
+        
+                            // Append the card HTML to the container
+                            produkContainer.append(cardHtml);
+                        });
+                    }
+        
+                    // // Function to update MyList table
+                    function updateMyListTable(mylistItems) {
+                        var myListTableBody = $("#mylist tbody");
+                        myListTableBody.empty(); // Clear existing content
+        
+                        var totalPrice = 0;
+        
+                        mylistItems.forEach(function (item, index) {
+                            var rowHtml = `
+                             <tr id="row-list">
+                                 <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
+                                 <td>${index + 1}</td>
+                                 <td>Rp ${item.harga}</td>
+                                 <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
+                             </tr>`;
+                            myListTableBody.append(rowHtml);
+        
+                            // Calculate total price
+                            totalPrice += parseFloat(item.harga);
+                        });
+        
+                        // Update the total price in the table footer
+                        $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+                    }
+        
+                    // Function to retrieve MyList items from the server
+                    function getMyListItems() {
+                        $.ajax({
+                            type: "GET",
+                            url: "/get_mylist",
+                            success: function (data) {
+                                updateMyListTable(data.mylist_items);
+                            },
+                            error: function (error) {
+                                console.error("Error fetching MyList items:", error);
+                            }
+                        });
+                    }
 
         function deleteListItem(rowId) {
             // Send an AJAX request to the server to delete the item
@@ -354,50 +341,52 @@
                 }
             });
         }
-
+        /* gunakan payload saja di backend */
         var username = "{{ username }}" || null;
 
         function favorit(event, sellerId) {
             event.preventDefault();
-            console.log("Seller Id", sellerId)
-
             // Check if the user is logged in
             if (!username) {
                 alert("Kamu harus login untuk menggunakan fitur ini.");
                 return;
             }
 
-            // Toggle the star icon class
             var starIcon = $(event.target).closest('.card').find('.fa-star');
-            starIcon.toggleClass('fa-regular fa-solid');
+            var ada = starIcon.hasClass('fa-solid');
+            if (ada) {
+                $.ajax({
+                    type: "POST",
+                    url: "/remove_favorites",
+                    data: {
+                        sellerId: sellerId
+                    },
+                    success: function (response) {
+                        starIcon.removeClass('fa-solid')
+                        starIcon.addClass('fa-regular')
 
-            // Get the toserbaname from the card
-            var toserbaname = $(event.target).closest('.card').find('.text-center').text().trim();
+                    }
+                });
 
-            // Prepare the data to be sent to the server
-            var data = {
-                username: username,
-                toserbaname: toserbaname,
-                sellerId: sellerId,
-            };
 
-            // Send the data to the server using AJAX
-            console.log("Data to be sent:", data);
-            $.ajax({
-                type: "POST",
-                url: "/add_to_favorites",
-                data: JSON.stringify(data),
-                contentType: "application/json;charset=UTF-8",
-                success: function (response) {
-                    // Handle success (if needed)
-                    console.log("Seller added to favorites:", response);
-                    alert("Toko ditambahkan ke favorit!");
-                },
-                error: function (error) {
-                    console.error("Error adding seller to favorites:", error);
-                }
-            });
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "/add_to_favorites",
+                    data: {
+                        sellerId: sellerId
+                    },
+                    success: function (response) {
+                        starIcon.addClass('fa-solid')
+                        starIcon.removeClass('fa-regular')
+
+                    }
+                });
+
+            }
         }
+
+
 
         function addToMyList(namaProduk, harga, toserbaname) {
             // Check if the user is logged in
@@ -565,17 +554,15 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
-            <a href="#" class="link-list">Home</a>
-            {% if username %}
+            {% if usename %}
+            <a href="/home" class="link-list">Home</a>
             <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
+            <a href="/profile" class="link-list">Profile</a>
             {% else %}
+            <a href="/" class="link-list">Home</a>
             <a href="#" class="link-list" onclick="showAlert()">MyList</a>
-            {% endif %}
-            {% if username %}
-            <a href="/myprofile/<username>" class="link-list">Profile</a>
-            {% else %}
-            <a href="#" class="link-list" onclick="showAlertProfile('Profile')">Profile</a>
+            <a href="#" class="link-list" onclick="showAlertProfile()">Profile</a>
             {% endif %}
         </div>
         <div class="nav-logout">

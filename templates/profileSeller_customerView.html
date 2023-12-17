@@ -152,14 +152,14 @@
     </style>
     <script>
 
-        /* Di komen dulu, error soalnya
+      //Di komen dulu, error soalnya -->
 
         {% if msg %}
         alert('{{msg}}')
         window.location.href = '/profile'
         {% endif %}
 
-        */
+        
 
         $(document).ready(function () {
 
@@ -185,13 +185,7 @@
             toggleFields('Semua')
 
         });
-        function submitForm() {
-            // Mengambil referensi ke formulir
-            var form = document.getElementById('formEditProfile');
-            console.log(form)
-            // Melakukan pengiriman formulir secara manual
-            form.submit();
-        }
+       
 
         function favorit() {
             event.preventDefault();
@@ -207,6 +201,13 @@
 
             alert("Star Clicked!");
         }
+        function showAlert() {
+            alert("Please log in to use this feature.");
+        }
+
+        function showAlertProfile() {
+            alert("Please log in first.");
+        }
     </script>
 </head>
 
@@ -215,17 +216,15 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
-            <a href="#" class="link-list">Home</a>
-            {% if username %}
-            <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
+            {% if usename %}
+                <a href="/home" class="link-list">Home</a>
+                <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
+                <a href="/profile" class="link-list">Profile</a>
             {% else %}
-            <a href="#" class="link-list" onclick="showAlert()">MyList</a>
-            {% endif %}
-            {% if username %}
-            <a href="/myprofile/<username>" class="link-list">Profile</a>
-            {% else %}
-            <a href="#" class="link-list" onclick="showAlert('Profile')">Profile</a>
+                <a href="/" class="link-list">Home</a>
+                <a href="#" class="link-list" onclick="showAlert()">MyList</a>
+                <a href="#" class="link-list" onclick="showAlertProfile()">Profile</a>
             {% endif %}
         </div>
         <div class="nav-logout">
