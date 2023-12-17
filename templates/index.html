@@ -189,7 +189,7 @@
             }
 
             // Function to update the DOM with the list of sellers
-            function updateSellerList(sellers) {
+            function updateSellerList(sellers, favoriteStatus) {
                 var toserbaContainer = $("#toserba");
 
                 // Clear existing content
@@ -199,15 +199,17 @@
                 sellers.forEach(function (seller) {
                     var cardHtml = `
                         <div class="col">
-                            <div class="card">
+                            <div class="card" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
                                 <!-- star icon -->
-                                <a href="#" onclick="favorit()" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
+                                <a href="#" onclick="favorit(event, '${seller.sellerId}')" data-product-id="${seller.productId}" data-seller-id="${seller.sellerId}">
+
                                     <i class="fa-regular fa-star position-absolute top-0 start-0 p-3 star-icon" style="font-size: 24px;"></i>
                                 </a>
                                 <img src="/static/${seller.profile_pic_real}"
                                     class="card-img-top" alt="...">
                                 <div class="card-body">
                                     <h5 class="text-center">${seller.toserbaname}</h5>`;
+
 
                     // Conditionally include or exclude the description based on data availability
                     if (seller.profile_info) {
@@ -235,6 +237,7 @@
                     toserbaContainer.append(cardHtml);
                 });
             }
+
 
             // Function to retrieve products from the server
             function getProducts() {
@@ -285,44 +288,43 @@
             }
 
             // // Function to update MyList table
-            // function updateMyListTable(mylistItems) {
-            //     var myListTableBody = $("#mylist tbody");
-            //     myListTableBody.empty(); // Clear existing content
+            function updateMyListTable(mylistItems) {
+                var myListTableBody = $("#mylist tbody");
+                myListTableBody.empty(); // Clear existing content
 
-            //     var totalPrice = 0;
+                var totalPrice = 0;
 
-            //     mylistItems.forEach(function (item, index) {
-            //         var rowHtml = `
-            //         <tr id="row-list">
-            //             <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
-            //             <td>${index + 1}</td>
-            //             <td>Rp ${item.harga}</td>
-            //             <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
-            //         </tr>`;
+                mylistItems.forEach(function (item, index) {
+                    var rowHtml = `
+                     <tr id="row-list">
+                         <td>${item.namaProduk}<br><p class="mylist-tokoname">${item.toserbaname}</p></td>
+                         <td>${index + 1}</td>
+                         <td>Rp ${item.harga}</td>
+                         <td><a href="#" onclick="deleteListItem()"><i class="fa-solid fa-trash-can"></i></a></td>
+                     </tr>`;
+                    myListTableBody.append(rowHtml);
 
-            //         myListTableBody.append(rowHtml);
+                    // Calculate total price
+                    totalPrice += parseFloat(item.harga);
+                });
 
-            //         // Calculate total price
-            //         totalPrice += parseFloat(item.harga);
-            //     });
+                // Update the total price in the table footer
+                $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+            }
 
-            //     // Update the total price in the table footer
-            //     $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
-            // }
-
-            // // Function to retrieve MyList items from the server
-            // function getMyListItems() {
-            //     $.ajax({
-            //         type: "GET",
-            //         url: "/get_mylist",
-            //         success: function (data) {
-            //             updateMyListTable(data.mylist_items);
-            //         },
-            //         error: function (error) {
-            //             console.error("Error fetching MyList items:", error);
-            //         }
-            //     });
-            // }
+            // Function to retrieve MyList items from the server
+            function getMyListItems() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_mylist",
+                    success: function (data) {
+                        updateMyListTable(data.mylist_items);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching MyList items:", error);
+                    }
+                });
+            }
 
             // Call the function to get sellers when the document is loaded
             getSellers();
@@ -340,10 +342,10 @@
                 success: function (response) {
                     console.log("Item deleted from MyList:", response);
                     alert("berhasil dihapus")
-        
+
                     // Remove the row from the table
                     $("#mylist tbody tr[data-row-id='" + rowId + "']").remove();
-        
+
                     // Update the total price in the table footer
                     updateTotalPrice();
                 },
@@ -352,31 +354,49 @@
                 }
             });
         }
-        
 
-        var username = "{{ username }}" || null; // Use null if the username is not available
-        // ... (your existing script)
+        var username = "{{ username }}" || null;
 
-        function favorit() {
+        function favorit(event, sellerId) {
             event.preventDefault();
+            console.log("Seller Id", sellerId)
 
             // Check if the user is logged in
             if (!username) {
-                // If not logged in, show an alert and return
                 alert("Kamu harus login untuk menggunakan fitur ini.");
                 return;
             }
-
-            // Get the product and seller IDs from data attributes
-            var productId = $(event.target).closest('.favorite-icon').data('product-id');
-            var sellerId = $(event.target).closest('.favorite-icon').data('seller-id');
 
             // Toggle the star icon class
             var starIcon = $(event.target).closest('.card').find('.fa-star');
             starIcon.toggleClass('fa-regular fa-solid');
 
+            // Get the toserbaname from the card
+            var toserbaname = $(event.target).closest('.card').find('.text-center').text().trim();
 
-            alert("Star Clicked!");
+            // Prepare the data to be sent to the server
+            var data = {
+                username: username,
+                toserbaname: toserbaname,
+                sellerId: sellerId,
+            };
+
+            // Send the data to the server using AJAX
+            console.log("Data to be sent:", data);
+            $.ajax({
+                type: "POST",
+                url: "/add_to_favorites",
+                data: JSON.stringify(data),
+                contentType: "application/json;charset=UTF-8",
+                success: function (response) {
+                    // Handle success (if needed)
+                    console.log("Seller added to favorites:", response);
+                    alert("Toko ditambahkan ke favorit!");
+                },
+                error: function (error) {
+                    console.error("Error adding seller to favorites:", error);
+                }
+            });
         }
 
         function addToMyList(namaProduk, harga, toserbaname) {
@@ -386,7 +406,7 @@
                 alert("Kamu harus login untuk menggunakan fitur ini.");
                 return;
             }
-        
+
             // Prepare the data to be sent to the server
             var data = {
                 username: username,
@@ -394,7 +414,7 @@
                 harga: harga,
                 toserbaname: toserbaname
             };
-        
+
             // Send the data to the server using AJAX
             $.ajax({
                 type: "POST",
@@ -404,15 +424,15 @@
                 success: function (response) {
                     // Handle success (if needed)
                     console.log("Product added to MyList:", response);
-        
+
                     // Check if the product is already in the MyList
                     var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
-        
+
                     if (existingRow.length > 0) {
                         // If the product is already in the MyList, update quantity and total price
                         var existingQuantity = parseInt(existingRow.find('td:eq(1)').text());
                         existingRow.find('td:eq(1)').text(existingQuantity + 1);
-        
+
                         var existingPrice = parseFloat(existingRow.find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
                         var newTotalPrice = existingPrice + harga;
                         existingRow.find('td:eq(2)').text("Rp " + newTotalPrice.toFixed(2));
@@ -428,43 +448,42 @@
                                 <td>1</td>
                                 <td>Rp ${harga.toFixed(2)}</td>
                             </tr>`;
-        
+
                         // Append the new row to the MyList table
                         $("#mylist tbody").append(rowHtml);
                     }
-        
+
                     // Update the total price in the table footer
                     updateTotalPrice();
                     alert("Berhasil di tambahkan!");
                     location.reload(true)
-                    
+
                 },
                 error: function (error) {
                     console.error("Error adding product to MyList:", error);
                 }
             });
         }
-        
+
         // Function to update the total price in the table footer
         function updateTotalPrice() {
             var totalPrice = 0;
-        
+
             $("#mylist tbody tr").each(function () {
                 var price = parseFloat($(this).find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
                 totalPrice += price;
             });
-        
+
             // Update the total price in the table footer
             $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
         }
-        
 
-        {/* function getMyListItems() {
+
+        function getMyListItems() {
             $.ajax({
                 type: "GET",
                 url: "/get_mylist",  // Adjust the URL based on your Flask route
                 success: function (data) {
-                    console.log("MyList Items:", data.mylist_items);
                 },
                 error: function (error) {
                     console.error("Error fetching MyList items:", error);
@@ -472,7 +491,7 @@
             });
         }
 
-        getMyListItems(); */}
+        getMyListItems();
 
         function confirmLogout() {
             // Show a confirmation alert
@@ -494,7 +513,7 @@
             alert("Please log in first.");
         }
 
-        function kategori(id){
+        function kategori(id) {
             // Get the id of the clicked link
             var category = id.split("Link")[0];
 
@@ -502,14 +521,14 @@
             $.ajax({
                 type: "GET",
                 url: "/get_products",
-                data: {category: category},
-                success: function(response){
+                data: { category: category },
+                success: function (response) {
                     if (response["result"] === "success") {
                         $("#post-box").empty();
                         let posts = response["posts"];
                         for (let i = 0; i < posts.length; i++) {
                             let post = posts[i];
-                            let html_temp =`
+                            let html_temp = `
                                             
 
                             <div class="col">
@@ -532,12 +551,13 @@
                             
                             `;
                             $("#post-box").append(html_temp);
-    
+
                         }
                     }
                 }
             });
         };
+
     </script>
 </head>
 
@@ -571,40 +591,37 @@
 
     <div id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
-          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active" aria-current="true"
-            aria-label="Slide 1"></button>
-          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-          <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active"
+                aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
         </div>
         <div class="carousel-inner">
-          <div class="carousel-item active c-item">
-            <img
-              src="{{ url_for('static', filename='img/carousel-home-1.png') }}"
-              class="d-block w-100 c-img" alt="Slide 1">
-            
-          </div>
-          <div class="carousel-item c-item">
-            <img
-              src="{{ url_for('static', filename='img/carousel-home-2.png') }}"
-              class="d-block w-100 c-img" alt="Slide 2">
-            
-          </div>
-          <div class="carousel-item c-item">
-            <img
-              src="{{ url_for('static', filename='img/carousel-home-3.png') }}"
-              class="d-block w-100 c-img" alt="Slide 3">
-            
-          </div>
+            <div class="carousel-item active c-item">
+                <img src="{{ url_for('static', filename='img/carousel-home-1.png') }}" class="d-block w-100 c-img"
+                    alt="Slide 1">
+
+            </div>
+            <div class="carousel-item c-item">
+                <img src="{{ url_for('static', filename='img/carousel-home-2.png') }}" class="d-block w-100 c-img"
+                    alt="Slide 2">
+
+            </div>
+            <div class="carousel-item c-item">
+                <img src="{{ url_for('static', filename='img/carousel-home-3.png') }}" class="d-block w-100 c-img"
+                    alt="Slide 3">
+
+            </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
         </button>
-      </div>
+    </div>
 
     <div class="container d-flex flex-wrap justify-content-center mt-5">
         <div class="search" style="max-height: 50px; color:#000000; width: 60%;">
@@ -685,18 +702,22 @@
                         </div>
                     </div>
                 </div>
-                
+
             </div>
         </div>
     </div>
 
     <div class="container d-flex flex-wrap justify-content-center mt-5">
-        <button type="button" id="ElektronikLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Elektronik</button>
-        <button type="button" id="KecantikanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Kecantikan</button>
-        <button type="button" id="KebersihanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Kebersihan</button>
+        <button type="button" id="ElektronikLink" class="btn btn-warning mx-3"
+            onclick="kategori(this.id)">Elektronik</button>
+        <button type="button" id="KecantikanLink" class="btn btn-warning mx-3"
+            onclick="kategori(this.id)">Kecantikan</button>
+        <button type="button" id="KebersihanLink" class="btn btn-warning mx-3"
+            onclick="kategori(this.id)">Kebersihan</button>
         <button type="button" id="MakananLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Makanan</button>
         <button type="button" id="MinumanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Minuman</button>
-        <button type="button" id="PerabotanLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Perabotan</button>
+        <button type="button" id="PerabotanLink" class="btn btn-warning mx-3"
+            onclick="kategori(this.id)">Perabotan</button>
         <button type="button" id="SembakoLink" class="btn btn-warning mx-3" onclick="kategori(this.id)">Sembako</button>
     </div>
     <div class="container my-3">
@@ -712,6 +733,7 @@
         </div>
         <p>Rekomendasi Toko</p>
         <div id="toserba" class="row row-cols-1 row-cols-md-4 g-4">
+
 
         </div>
 
