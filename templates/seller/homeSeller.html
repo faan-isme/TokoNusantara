@@ -36,6 +36,32 @@
     //$('#submitInputProduct').prop('disabled', true);
 
   }
+  function is_desc_prod(asValue) {
+    var regExp = /^([A-Za-z0-9()\/@*.,:!@#$%\s]{0,25})?$/;
+    return regExp.test(asValue);
+  }
+  function count_char_desc() {
+
+    // Ambil nilai dari textarea
+    var deskripsi = $("#deskripsi").val();
+    let max = 25;
+    // Hitung panjang karakter
+    var charCount = max - deskripsi.length;
+    // Update tampilan panjang karakter
+    $("#charCount").text('Deskripsi (' + charCount + '/25)');
+    //peringatan validasi
+    if (!is_desc_prod(deskripsi)) {
+      $('#info-deskripsi')
+        .text('Maksimal 25 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
+        .removeClass('d-none');
+      $("#deskripsi").focus();
+      return;
+    } else {
+      $('#info-deskripsi')
+        .text('')
+        .addClass('d-none');
+    }
+  }
   //reset modal form input barang
   function reset() {
     $('#namaBarang').val('');
@@ -266,22 +292,16 @@
   </div>
   <div class="carousel-inner">
     <div class="carousel-item active c-item">
-      <img
-        src="{{ url_for('static', filename='img/carousel-home-1.png') }}"
-        class="d-block w-100 c-img" alt="Slide 1">
-      
+      <img src="{{ url_for('static', filename='img/carousel-home-1.png') }}" class="d-block w-100 c-img" alt="Slide 1">
+
     </div>
     <div class="carousel-item c-item">
-      <img
-        src="{{ url_for('static', filename='img/carousel-home-2.png') }}"
-        class="d-block w-100 c-img" alt="Slide 2">
-      
+      <img src="{{ url_for('static', filename='img/carousel-home-2.png') }}" class="d-block w-100 c-img" alt="Slide 2">
+
     </div>
     <div class="carousel-item c-item">
-      <img
-        src="{{ url_for('static', filename='img/carousel-home-3.png') }}"
-        class="d-block w-100 c-img" alt="Slide 3">
-      
+      <img src="{{ url_for('static', filename='img/carousel-home-3.png') }}" class="d-block w-100 c-img" alt="Slide 3">
+
     </div>
   </div>
   <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
@@ -390,8 +410,8 @@
             <p id="info-foto" class="text-danger d-none"></p>
           </div>
           <div class="mb-3">
-            <label for="deskripsi" class="form-label">Deskripsi (maks 25 karakter)</label>
-            <textarea class="form-control" id="deskripsi" rows="3" name="desc"></textarea>
+            <label for="deskripsi" class="form-label" id="charCount">Deskripsi (maks 25 karakter)</label>
+            <textarea class="form-control" id="deskripsi" rows="3" name="desc" onkeyup="count_char_desc()"></textarea>
             <p id="info-deskripsi" class="text-danger d-none"></p>
           </div>
           <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal" onclick="reset()">Tutup</button>
@@ -406,61 +426,61 @@
 </div>
 <!-- card container -->
 <div class="container-lg mt-5">
-  
-    
-    {% set data_list = data|list %}
-    {% if data_list|length == 0 %}
-        <div class="col mb-3">
-          <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
-        </div>
-        
-      
-    {% else %}
-    <div class="row row-cols-1 row-cols-md-4 g-10" id="cardcontainer">
-      <!-- setiap id tambahkan nomer berdasarkan iterasi -->
-      <!-- card barang -->
-      {% for item in data_list %}
-      <div class="col mb-3">
-        <div class="card h-100">
-          <img src="{{url_for('static', filename=item['foto'])}}" class="card-img-top" alt="...">
-          <div class="card-body">
-            <h5 class="card-title">{{item['namaBarang']}}</h5>
-            <p class="card-text">Rp {{item['harga']}}</p>
-            <div class="d-flex justify-content-center">
-              <p>{{item['jumlah']}}pcs</p>
-            </div>
-            <!-- input jml -->
-            <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-{{ loop.index }}">
-              <div class="border">
-                <button class="border border-0" id="dec-{{ loop.index }}" style="width: 30px;"
-                  onclick="decrement(this.id)">-</button>
-                <input class="text-center border border-0" type="number" id="quantityInput-{{ loop.index }}" value="1">
-                <button class="border border-0" id="inc-{{ loop.index }}" style="width: 30px;"
-                  onclick="increment(this.id)">+</button>
-              </div>
-            </div>
 
-            <!-- tombol lihat -->
-            <div class="d-flex justify-content-around mb-2">
-              <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
-                style="width:100px">Jual</button>
-              <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
-                data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)"
-                style="width:100px">Jual</button>
-              <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
-                onclick="showInputJml(this.id)">Tambah</button>
-              <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
-                data-idbarang="{{item['_id']}}" onclick="update(this.id)">Update</button>
-              <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
-                style="width:100px">Batal</button>
+
+  {% set data_list = data|list %}
+  {% if data_list|length == 0 %}
+  <div class="col mb-3">
+    <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
+  </div>
+
+
+  {% else %}
+  <div class="row row-cols-1 row-cols-md-4 g-10" id="cardcontainer">
+    <!-- setiap id tambahkan nomer berdasarkan iterasi -->
+    <!-- card barang -->
+    {% for item in data_list %}
+    <div class="col mb-3">
+      <div class="card h-100">
+        <img src="{{url_for('static', filename=item['foto'])}}" class="card-img-top" alt="...">
+        <div class="card-body">
+          <h5 class="card-title">{{item['namaBarang']}}</h5>
+          <p class="card-text">Rp {{item['harga']}}</p>
+          <div class="d-flex justify-content-center">
+            <p>{{item['jumlah']}}pcs</p>
+          </div>
+          <!-- input jml -->
+          <div class="mb-2 d-flex justify-content-center d-none" id="inputjml-{{ loop.index }}">
+            <div class="border">
+              <button class="border border-0" id="dec-{{ loop.index }}" style="width: 30px;"
+                onclick="decrement(this.id)">-</button>
+              <input class="text-center border border-0" type="number" id="quantityInput-{{ loop.index }}" value="1">
+              <button class="border border-0" id="inc-{{ loop.index }}" style="width: 30px;"
+                onclick="increment(this.id)">+</button>
             </div>
+          </div>
+
+          <!-- tombol lihat -->
+          <div class="d-flex justify-content-around mb-2">
+            <button class="btn btn-outline-success" id="jual-{{ loop.index }}" onclick="showInputJml(this.id)"
+              style="width:100px">Jual</button>
+            <button class="btn btn-success d-none" id="jualCart-{{ loop.index }}" data-name="{{item['namaBarang']}}"
+              data-price="{{item['harga']}}" data-idbarang="{{item['_id']}}" onclick="addItem(this.id)"
+              style="width:100px">Jual</button>
+            <button class="btn  btn-outline-primary" id="tambah-{{ loop.index }}" style="width:100px"
+              onclick="showInputJml(this.id)">Tambah</button>
+            <button class="btn btn-primary d-none" id="update-{{ loop.index }}" style="width:100px"
+              data-idbarang="{{item['_id']}}" onclick="update(this.id)">Update</button>
+            <button class="btn btn-outline-danger d-none" id="batal-{{ loop.index }}" onclick="hideInputJml(this.id)"
+              style="width:100px">Batal</button>
           </div>
         </div>
       </div>
-      {% endfor %}
     </div>
-    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  
+
 </div>
 {% endblock %}
