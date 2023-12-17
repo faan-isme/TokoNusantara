@@ -65,20 +65,13 @@
             background: transparent;
             width: 350px;
             flex: 1;
+            justify-content: center;
         }
 
         .search-input::placeholder {
             color: rgba(0, 0, 0, 0.5);
-        }
-
-        .search-input::placeholder {
             text-align: center;
         }
-
-        .search-input {
-            justify-content: center;
-        }
-
 
         .mycards {
             margin: 20px auto 0px auto;
@@ -90,6 +83,78 @@
             margin-bottom: 50px;
             border-radius: 10px;
             box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+        }
+
+          #produk .card:hover {
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        #toserba .card:hover {
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        #produk .card img {
+            width: 100%;
+            align-items: center;
+        }
+
+        #toserba .card img {
+            width: 100%;
+            align-items: center;
+        }
+
+        #produk .card .card-body {
+            position: relative;
+            left: 0;
+            padding: 0.5rem;
+            padding-left: 20px;
+            padding-top: 20px;
+            padding-bottom: 0;
+        }
+
+        #toserba .card .card-body {
+            position: relative;
+            left: 0;
+            padding: 0.5rem;
+            padding-left: 20px;
+            padding-top: 20px;
+            padding-bottom: 0;
+        }
+
+        #produk .card .card-body h4 {
+            margin-top: -5px;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        #toserba .card .card-body h4 {
+            margin-top: -5px;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        #produk .card .card-body span .harga {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #toserba .card .card-body span .harga {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #produk .card .card-fasilitas {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 0 20px;
+        }
+
+        #produk .card .card-fasilitas span jual {
+            font-size: 12px;
+            font-weight: 400;
+            text-align: left;
         }
 
         .card .btn-secondary {
@@ -149,14 +214,6 @@
             color: gray;
         }
 
-
-        .star-icon {
-            color: blue;
-        }
-
-        .mylist-tokoname {
-            font-size: 80%;
-        }
     </style>
     <script>
         $(document).ready(function () {
@@ -729,12 +786,109 @@
     <div class="mycards">
         <p>Rekomendasi Produk</p>
         <div id="produk" class="row row-cols-1 row-cols-md-4 g-4">
-
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Barang</h4>
+                        <span>
+                            <p class="harga"><span class="text-black">Rp.xxx.xxx</span></p>
+                        </span>
+                    </div>
+                    <div class="card-fasilitas">
+                        <span>
+                            <span><p class="jual">1RB + Terjual</p></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Barang</h4>
+                        <span>
+                            <p class="harga"><span class="text-black">Rp.xx.xxx</span></p>
+                        </span>
+                    </div>
+                    <div class="card-fasilitas">
+                        <span>
+                            <span><p class="jual">1RB + Terjual</p></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Barang</h4>
+                        <span>
+                            <p class="harga"><span class="text-black">Rp.xx.xxx</span></p>
+                        </span>
+                    </div>
+                    <div class="card-fasilitas">
+                        <span>
+                            <span><p class="jual">1RB + Terjual</p></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Barang</h4>
+                        <span>
+                            <p class="harga"><span class="text-black">Rp.xx.xxx</span></p>
+                        </span>
+                    </div>
+                    <div class="card-fasilitas">
+                        <span>
+                            <span><p class="jual">1RB + Terjual</p></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
         <p>Rekomendasi Toko</p>
         <div id="toserba" class="row row-cols-1 row-cols-md-4 g-4">
-
-
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Toko</h4>
+                        <h4>Descripsi toko</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Toko</h4>
+                        <h4>Descripsi toko</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Toko</h4>
+                        <h4>Descripsi toko</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <a href=""><img src="static/profile_pics/profile_placeholder.png"></a>
+                    <div class="card-body">
+                        <h4>Nama Toko</h4>
+                        <h4>Descripsi toko</h4>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
