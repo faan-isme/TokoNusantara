@@ -87,23 +87,29 @@
 
         }
     });
-    function kategori(id){
+
+    //  memodifikasi titik pada tiap 3 digit
+    function formatPrice(price) {
+        const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price);
+        return formattedPrice.endsWith(',00') ? formattedPrice.slice(0, -3) : formattedPrice;
+    }
+    function kategori(id) {
         // Get the id of the clicked link
         var category = id.split("Link")[0];
-        
+
 
         // Send an AJAX request to the server to get product data
         $.ajax({
             type: "GET",
             url: "/get_products",
-            data: {category: category},
-            success: function(response){
+            data: { category: category },
+            success: function (response) {
                 if (response["result"] === "success") {
                     $("#post-box").empty();
                     let posts = response["posts"];
                     for (let i = 0; i < posts.length; i++) {
                         let post = posts[i];
-                        let html_temp =`
+                        let html_temp = `
                                         <div class="col mb-3">
                                             <div class="card h-100">
                                                 <img src="/static/${post['foto']}"
@@ -111,10 +117,10 @@
                                                 <div class="card-body">
                                                     <h5 class="card-title "><strong>${post['namaBarang']}</strong></h5>
                                                     <div class="d-flex flex-column">
-                                                        <p class="my-0" style="">Harga Rp.${post['harga']}</p>
+                                                        <p class="my-0" style="">${formatPrice(post['harga'])}</p>
                                                         <p class="my-0">Stok ${post['jumlah']} pcs</p>
                                                     </div>
-                                                    <p>${post['desc']} pcs</p>
+                                                    <p>${post['desc']} </p>
                                                     <div class="d-flex justify-content-center">
                                                         
                                                     </div>
@@ -143,23 +149,31 @@
         return regExp.test(asValue);
     }
     function count_char_desc() {
-
         // Ambil nilai dari textarea
-        var deskripsi = $("#desc").val();
-        let max = 25;
+        var deskripsi = $("#deskripsi").val();
+        const max = 50;
+
+        // Trim the input to enforce maxlength
+        if (deskripsi.length > max) {
+            $("#deskripsi").val(deskripsi.substring(0, max));
+            deskripsi = $("#deskripsi").val();
+        }
+
         // Hitung panjang karakter
         var charCount = max - deskripsi.length;
+
         // Update tampilan panjang karakter
-        $("#charCount").text('Deskripsi (' + charCount + '/25)');
-        //peringatan validasi
-        if (!is_desc_prod(deskripsi)) {
-            $('#info-desc')
-                .text('Maksimal 25 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
+        $("#charCount").text('Deskripsi (' + (max - charCount) + '/' + max + ')');
+
+        // peringatan maksimal
+        if (deskripsi.length === max) {
+            $('#info-descripsi')
+                .text('Karakter sudah maksimal!')
                 .removeClass('d-none');
-            $("#desc").focus();
+            $("#deskripsi").focus();
             return;
         } else {
-            $('#info-desc')
+            $('#info-descripsi')
                 .text('')
                 .addClass('d-none');
         }
@@ -188,6 +202,9 @@
         // Update tampilan panjang karakter
         $("#charCount").text('Deskripsi (' + charCount + '/25)');
 
+        // menghitung jumlah karakter pada deskripsi
+        count_char();
+
     }
     function updateItem() {
         $('#namaBarang').val();
@@ -195,8 +212,10 @@
         $('#harga').val();
         $('#jumlah').val();
         $('#kategori').val();
-        
+
         $('#formEditPrduct').submit();
+
+        
     }
     function refresh() {
         $('#toserbaname').val("{{data['toserbaname']}}");
@@ -205,28 +224,38 @@
         $('#alamat').val("{{data['alamat']}}");
         $('#foto').val("{{data['profile_pic']}}");
         $('#no_telp').val("{{data['no_telp']}}");
+        // menghitung karakter pada deskrip yg pernah dimasukkan
+        count_char_desc();
     }
     function count_char() {
 
         // Ambil nilai dari textarea
-        var deskripsi = $("#deskripsi").val();
-        let max = 50;
+        var desc = $("#desc").val();
+        let max = 25;
+
+        // Trim the input to enforce maxlength
+        if (desc.length > max) {
+            $("#desc").val(desc.substring(0, max));
+            desc = $("#desc").val();
+        }
+
         // Hitung panjang karakter
-        var charCount = max - deskripsi.length;
+        var charCount = max - desc.length;
         // Update tampilan panjang karakter
-        $("#charCount").text('Deskripsi (' + charCount + '/50)');
-        //peringatan validasi
-        if (!is_desc(deskripsi)) {
-            $('#info-descripsi')
-                .text('Maksimal 50 karakter,atau karakter khusus berikut (/@*.,:!@#$%)!')
+        $("#charCountEdit").text('Deskripsi (' + (max - charCount) + '/25)');
+        // peringatan validasi
+        if (desc.length === max) {
+            $('#info-desc')
+                .text('Karakter sudah maksimal')
                 .removeClass('d-none');
-            $("#deskripsi").focus();
+            $("#desc").focus();
             return;
         } else {
-            $('#info-descripsi')
+            $('#info-desc')
                 .text('')
                 .addClass('d-none');
         }
+
 
     }
     function is_desc(asValue) {
@@ -377,13 +406,14 @@
                 <div class="mx-1 wicon"><i class="fa-solid fa-shop" style="color: #000000;"></i></div>
                 <div class="mx-1 wket">Produk</div>
                 <div class="mx-1">:</div>
-                <div class="mx-1">263</div>
+                <div class="mx-1">{{total_items}}</div>
             </div>
             <div class="desc">
                 <div class="mx-1 wicon"><i class="fa-solid fa-location-dot" style="color: #ff0000;"></i></div>
                 <div class="mx-1 wket">Alamat</div>
                 <div class="mx-1">:</div>
-                <div class="mx-1"><a href="{{data['alamat']}}" target="_blank" style="text-decoration: none; color:#2c93f3">{{data['alamat']}}</a></div>
+                <div class="mx-1"><a href="{{data['alamat']}}" target="_blank"
+                        style="text-decoration: none; color:#2c93f3">{{data['alamat']}}</a></div>
             </div>
             <div class="desc">
                 <div class="mx-1 wicon"><i class="fa-brands fa-whatsapp" style="color: #1b9834;"></i></div>
@@ -400,13 +430,21 @@
         </div>
         <div class="container d-flex justify-content-center">
             <div class="navbar">
-                <a id="SemuaLink" class="myswitch nav-active mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Semua</a>
-                <a id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Sembako</a>
-                <a id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Parabot</a>
-                <a id="MakananLink" class="myswitch mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Makanan</a>
-                <a id="MinumanLink" class="myswitch mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Minuman</a>
-                <a id="ElektronikLink" class="myswitch mx-2" onclick="kategori(this.id)" style="cursor: pointer;">Elektronik</a>
-                
+                <a id="SemuaLink" class="myswitch nav-active mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Semua</a>
+                <a id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Sembako</a>
+                <a id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Parabot</a>
+                <a id="MakananLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Makanan</a>
+                <a id="MinumanLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Minuman</a>
+                <a id="ElektronikLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Elektronik</a>
+                <a id="LainnyaLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Lainnya</a>
+
             </div>
         </div>
 
@@ -415,7 +453,7 @@
 <div class="container-lg mt-5">
     <div class="row row-cols-1 row-cols-md-4 g-10" id="post-box">
         <!-- card barang -->
-        
+
     </div>
 </div>
 
@@ -463,13 +501,14 @@
                     </div>
                     <div class="mb-3">
                         <label for="foto" class="form-label">Foto </label>
-                        <input class="form-control" type="file" id="foto-prof" name="foto-prof" value="{{data['profile_pic']}}">
+                        <input class="form-control" type="file" id="foto-prof" name="foto-prof"
+                            value="{{data['profile_pic']}}">
                         <p id="info-foto" class="text-danger d-none"></p>
                     </div>
                     <div class="mb-3">
-                        <label for="deskripsi" class="form-label" id="charCount">Deskripsi </label>
+                        <label for="deskripsi" class="form-label" id="charCount">Deskripsi</label>
                         <textarea class="form-control" id="deskripsi" rows="3" name="desc"
-                            onkeyup="count_char()">{{data['profile_info']}}</textarea>
+                            oninput="count_char_desc()">{{data['profile_info']}}</textarea>
                         <p id="info-descripsi" class="text-danger d-none"></p>
                     </div>
                 </form>
@@ -495,7 +534,7 @@
                     <input type="hidden" name="id_barang_update" id="id_barang_update">
                     <div class="mb-3 d-flex justify-content-center">
                         <div class="my-3" style="height: 10rem; width:10rem;  overflow:hidden">
-                            <img id="img-produk" src="" alt=""  style="height: 100%;">
+                            <img id="img-produk" src="" alt="" style="height: 100%;">
 
                         </div>
                     </div>
@@ -516,17 +555,18 @@
                             <option value="Minuman">Minuman</option>
                             <option value="Sembako">Sembako</option>
                             <option value="Perabotan">Perabotan</option>
+                            <option value="Lainnya">Lainnya</option>
                         </select>
                         <p id="info-kategori" class="text-danger d-none"></p>
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
                             <div class="me-2">
-                                <label for="jumlah" class="form-label">jumlah</label>
+                                <label for="jumlah" class="form-label">Jumlah</label>
                                 <input type="number" class="form-control " id="jumlah" name="jumlah" required>
                             </div>
                             <div class="ms-2">
-                                <label for="harga" class="form-label">harga</label>
+                                <label for="harga" class="form-label">Harga</label>
                                 <input type="number" class="form-control " id="harga" name="harga" required>
                             </div>
                         </div>
@@ -540,8 +580,8 @@
                         <p id="info-foto" class="text-danger d-none"></p>
                     </div>
                     <div class="mb-3">
-                        <label for="desc" class="form-label" id="charCount">Deskripsi </label>
-                        <textarea class="form-control" id="desc" rows="3" name="desc" onkeyup="count_char_desc()"></textarea>
+                        <label for="desc" class="form-label" id="charCountEdit">Deskripsi</label>
+                        <textarea class="form-control" id="desc" rows="3" name="desc" oninput="count_char()"></textarea>
                         <p id="info-desc" class="text-danger d-none"></p>
                     </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -575,4 +615,3 @@
 </div>
 
 {% endblock %}
-

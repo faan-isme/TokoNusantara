@@ -152,14 +152,14 @@
     </style>
     <script>
 
-      //Di komen dulu, error soalnya -->
+        //Di komen dulu, error soalnya -->
 
         {% if msg %}
         alert('{{msg}}')
         window.location.href = '/profile'
         {% endif %}
 
-        
+
 
         $(document).ready(function () {
 
@@ -185,29 +185,7 @@
             toggleFields('Semua')
 
         });
-       
 
-        function favorit() {
-            event.preventDefault();
-
-            // Get the product and seller IDs from data attributes
-            var productId = $(event.target).closest('.favorite-icon').data('product-id');
-            var sellerId = $(event.target).closest('.favorite-icon').data('seller-id');
-
-            // Toggle the star icon class
-            var starIcon = $(event.target).closest('.card').find('.fa-star');
-            starIcon.toggleClass('fa-regular fa-solid');
-
-
-            alert("Star Clicked!");
-        }
-        function showAlert() {
-            alert("Please log in to use this feature.");
-        }
-
-        function showAlertProfile() {
-            alert("Please log in first.");
-        }
     </script>
 </head>
 
@@ -217,14 +195,14 @@
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
             {% if usename %}
-                <a href="/home" class="link-list">Home</a>
-                <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
+            <a href="/home" class="link-list">Home</a>
+            <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
-                <a href="/profile" class="link-list">Profile</a>
+            <a href="/profile" class="link-list">Profile</a>
             {% else %}
-                <a href="/" class="link-list">Home</a>
-                <a href="#" class="link-list" onclick="showAlert()">MyList</a>
-                <a href="#" class="link-list" onclick="showAlertProfile()">Profile</a>
+            <a href="/" class="link-list">Home</a>
+            <a href="#" class="link-list" onclick="showAlert()">MyList</a>
+            <a href="#" class="link-list" onclick="showAlertProfile()">Profile</a>
             {% endif %}
         </div>
         <div class="nav-logout">
@@ -434,11 +412,7 @@
                 <div class="card">
                     <!-- Use the product's image (replace with your actual image source) -->
                     <div class="image-container" style="max-height: 80%; overflow: hidden;">
-                        <a href="#" onclick="favorit()" data-product-id="${seller.productId}"
-                            data-seller-id="${seller.sellerId}">
-                            <i class="fa-regular fa-star position-absolute top-0 start-0 p-3 star-icon"
-                                style="font-size: 24px;"></i>
-                        </a>
+
                         <img src="{{ url_for('static', filename=product.foto) }}" class="card-img-top"
                             alt="Product Image">
                     </div>
