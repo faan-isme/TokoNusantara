@@ -33,7 +33,7 @@
             font-family: 'Roboto', sans-serif;
         }
 
-        /* anchor tidak berwarna */
+
         a {
             color: inherit;
             text-decoration: none;
@@ -61,7 +61,7 @@
         }
 
         .nav-container {
-            background-color: white;
+            background-color: rgb(255, 255, 255);
             color: black;
             display: flex;
             align-items: center;
@@ -146,8 +146,49 @@
             }
         }
 
-        .star-icon {
-            color: blue;
+        /* sidebar style */
+        .figure {
+            text-align: center;
+        }
+
+        .figure img {
+            max-height: 150px;
+            border-radius: 50% !important;
+            margin-bottom: 10px;
+        }
+
+        .figure-caption {
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .card-sidebar {
+            padding: 0 10px 0 10px;
+            margin: 0 10px 10px 10px;
+            width: 90%
+        }
+
+        .btn-list {
+            text-align: center;
+        }
+
+        .card-mylist-empty {
+            margin: 10px 20px 10px 20px;
+            padding: 100px 0 100px 0;
+            background: white;
+            border-radius: 5%;
+            text-align: center;
+        }
+
+        .fa-trash-can {
+            color: rgb(255, 0, 0);
+        }
+
+
+
+
+        .mylist-tokoname {
+            font-size: 80%;
         }
     </style>
     <script>
@@ -161,8 +202,9 @@
 
 
 
-        $(document).ready(function () {
 
+        $(document).ready(function () {
+            
             // Initial setup
             toggleFields('Semua');
 
@@ -182,9 +224,239 @@
             }
 
 
-            toggleFields('Semua')
+            toggleFields('Semua');
+
+            getMyListItems();
+            getSellers();
+            kategori("SemuaLink");
 
         });
+
+
+
+        // Function to retrieve MyList items from the server
+        function getMyListItems() {
+            $.ajax({
+                type: "GET",
+                url: "/get_mylist",
+                success: function (response) {
+                    updateMyListTable(response.mylist_items);
+                },
+                error: function (error) {
+                    console.error("Error fetching MyList items:", error);
+                }
+            });
+        }
+        // // Function to update MyList table
+        function updateMyListTable(mylistItems) {
+            var myListTableBody = $("#mylist tbody");
+            myListTableBody.empty(); // Clear existing content
+
+            var totalPrice = 0;
+
+            mylistItems.forEach(function (item) {
+
+                var rowHtml = `
+             <tr id="row-list">
+                 <td>${item.namaProduk}<br><a class="mylist-tokoname" href="/user/${item.toserbaname}" style='color: rgb(0, 160, 209);'>${item.toserbaname}</a></td>
+                 <td>${item.jumlah}</td>
+                 <td>Rp ${item.harga}</td>
+                 <td><a href="#" onclick="deleteListItem('${item.listId}')"><i class="fa-solid fa-trash-can" style="color:red;"></i></a></td>
+             </tr>`;
+                myListTableBody.append(rowHtml);
+
+                // Calculate total price
+                totalPrice += parseFloat(item.harga);
+            });
+
+            // Update the total price in the table footer
+            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+        }
+
+
+
+        function deleteListItem(rowId) {
+            // Send an AJAX request to the server to delete the item
+            $.ajax({
+                type: "POST",
+                url: "/remove_mylist",
+                data: { listId: rowId },
+                success: function (response) {
+                    if (response["result"] === "success") {
+                        alert("Berhasil dihapus");
+                        getMyListItems();
+                        updateTotalPrice();
+                    } else {
+                        alert("Gagal dihapus");
+                    }
+
+
+                }
+            });
+        }
+        // Function to update the total price in the table footer
+        function updateTotalPrice() {
+            var totalPrice = 0;
+
+            $("#mylist tbody tr").each(function () {
+                var price = parseFloat($(this).find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
+                totalPrice += price;
+            });
+
+            // Update the total price in the table footer
+            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+        }
+        function getSellers() {
+            $.ajax({
+                type: "GET",
+                url: "/favorite/seller",
+                success: function (response) {
+                    if (response["result"] === "success") {
+                        var myFavoriteTableBody = $("#myfavorite tbody");
+                        myFavoriteTableBody.empty();
+                        let sellers = response["sellers"];
+                        for (let i = 0; i < sellers.length; i++) {
+                            let seller = sellers[i];
+
+
+                            var tableFav = `
+                                <tr>
+                                    <td><a href="/user/${seller.toserbaname}" style='color: rgb(0, 160, 209);'>${seller.toserbaname}</a></td>                     
+                                    <td class="text-end"><a href="#" onclick="delfav('${seller.seller_id}')"><i class="fa-solid fa-trash-can"></i></a></td>   
+                                </tr>`;
+                            myFavoriteTableBody.append(tableFav);
+
+
+                        }
+                    } else {
+                        alert("Data gagal dimuat")
+                        window.location.reload()
+                    }
+                }
+            });
+
+        }
+        var username = "{{ username }}" || null;
+        function addToMyList(namaProduk, harga, toserbaname, id) {
+            // Check if the user is logged in
+            if (!username) {
+                // If not logged in, show an alert and return
+                alert("Kamu harus login untuk menggunakan fitur ini.");
+                return;
+            }
+
+            // Prepare the data to be sent to the server
+            var data = {
+                username: username,
+                namaProduk: namaProduk,
+                harga: harga,
+                toserbaname: toserbaname,
+                barangId: id
+            };
+
+            // Send the data to the server using AJAX
+            $.ajax({
+                type: "POST",
+                url: "/add_to_mylist",
+                data: JSON.stringify(data),
+                contentType: "application/json;charset=UTF-8",
+                success: function (response) {
+                    // Handle success (if needed)
+                    console.log("Product added to MyList:", response);
+
+                    // Check if the product is already in the MyList
+                    var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
+
+                    if (existingRow.length > 0) {
+                        // If the product is already in the MyList, update quantity and total price
+                        var existingQuantity = parseInt(existingRow.find('td:eq(1)').text());
+                        existingRow.find('td:eq(1)').text(existingQuantity + 1);
+
+                        var existingPrice = parseFloat(existingRow.find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
+                        harga = parseInt(harga)
+                        var newTotalPrice = existingPrice + harga;
+                        existingRow.find('td:eq(2)').text("Rp " + newTotalPrice.toFixed(2));
+                    } else {
+                        // If the product is not in the MyList, add a new row
+                        var rowHtml = `
+                            <tr id="row-list">
+                                <td>${namaProduk}
+                                    <br>
+                                    <p class="mylist-tokoname">${toserbaname}
+                                    </p>
+                                </td>
+                                <td>1</td>
+                                <td>Rp ${harga.toFixed(2)}</td>
+                            </tr>`;
+
+                        // Append the new row to the MyList table
+                        $("#mylist tbody").append(rowHtml);
+                    }
+
+                    // Update the total price in the table footer
+                    updateTotalPrice();
+                    alert("Berhasil di tambahkan!");
+                    location.reload(true)
+
+                },
+                error: function (error) {
+                    console.error("Error adding product to MyList:", error);
+                }
+            });
+        }
+        function kategori(id) {
+            // Get the id of the clicked link
+            var category = id.split("Link")[0];
+            var use_user_id ="{{ data['_id'] }}"
+            
+            // Send an AJAX request to the server to get product data
+            $.ajax({
+                type: "GET",
+                url: "/get_products",
+                data: { category: category, use_user_id:use_user_id },
+                success: function (response) {
+                    if (response["result"] === "success") {
+                        $("#post-box").empty();
+                        let posts = response["posts"];
+                        for (let i = 0; i < posts.length; i++) {
+                            let post = posts[i];
+                            let html_temp = `
+                                            
+
+                            <div class="col">
+                                <div class="card">
+                                    <div class="image-container" style="max-height: 80%; overflow: hidden;">
+                                        <img src="/static/${post['foto']}" class="card-img-top" alt="Product Image">
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${post['namaBarang']}</h5>
+                                        <p class="card-name">${post['toserbaname']}</p>
+                                        <p class="card-text">${post['desc']}</p>
+                                        <p class="card-text">Rp. ${post['harga']}</p>
+                                        <p class="card-text">Tersisa ${post['jumlah']}</p>
+                                    </div>
+                                    <div class="d-flex justify-content-around mb-3">
+                                        <button onclick="addToMyList('${post['namaBarang']}', ${post['harga']}, '${post['toserbaname']}')" class="btn btn-warning " style="width:95%">Tambah</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            `;
+                            $("#post-box").append(html_temp);
+
+                        }
+                    }
+                }
+            });
+        };
+
+        function showAlert() {
+            alert("Please log in to use this feature.");
+        }
+
+        function showAlertProfile() {
+            alert("Please log in first.");
+        }
 
     </script>
 </head>
@@ -194,9 +466,10 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
-            {% if usename %}
+
+            {% if username %}
             <a href="/home" class="link-list">Home</a>
-            <a href="#" class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
+            <a class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
             <a href="/profile" class="link-list">Profile</a>
             {% else %}
@@ -224,7 +497,7 @@
         <div class="container-sm  d-flex  justify-content-center flex-wrap">
             <div class=" profileimg flex-warap flex-column d-flex align-items-center flex-center">
                 <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
-                    <img src="/home/herald/TokoNusantara/static/profile_placeholder.png" alt="" class="img-circle"
+                    <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
                         style="height: 100%;">
 
                 </div>
@@ -265,10 +538,11 @@
             </div>
             <div class="container d-flex justify-content-center">
                 <div class="navbar">
-                    <a href="#" id="SemuaLink" class="myswitch active mx-2">Semua</a>
-                    <a href="#" id="SembakoLink" class="myswitch mx-2">Sembako</a>
-                    <a href="#" id="SabunLink" class="myswitch mx-2">Parabot</a>
-                    <a href="#" id="LainLink" class="myswitch mx-2">Lain - lain</a>
+                    <a href="#" id="SemuaLink" class="myswitch active mx-2" onclick="kategori(this.id)">Semua</a>
+                    <a href="#" id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)">Sembako</a>
+                    <a href="#" id="KebersihanLink" class="myswitch mx-2" onclick="kategori(this.id)">Kebersihan</a>
+                    <a href="#" id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)">Perabotan</a>
+                    <a href="#" id="MakananLink" class="myswitch mx-2" onclick="kategori(this.id)">Makanan</a>
                 </div>
             </div>
         </div>
@@ -276,7 +550,6 @@
     </div>
 
     <!-- sidebar -->
-
     <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop"
         aria-labelledby="staticBackdropLabel">
         <div class="offcanvas-header">
@@ -286,25 +559,15 @@
         <div class="offcanvas-body">
             <div class="d-flex flex-column align-items-center">
                 <figure class="figure">
-                    <img src="{{ url_for('static', filename='profile_placeholder.png') }}"
+                    <img src="{{ url_for('static', filename=data['profile_pic_real']) }}"
                         class="figure-img img-fluid rounded" alt="...">
-                    <figcaption class="figure-caption">{{username}}
-                    </figcaption>
+                    <figcaption class="figure-caption">{{username}}</figcaption>
+                    <!-- link edit profile tambahkan modal -->
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#editProfile">Edit</button>
                 </figure>
                 <h5>MyList</h5>
-                <!-- card empty -->
-                <div class="card card-sidebar card-mylist-empty">
-                    <div class="card-body">
-                        <p class="card-text">
-                        <table id="mylist-empty" class="table">
-                            <div>ups...
-                                daftarmu masih
-                                kosongg</div>
-                        </table>
-                        </p>
-                    </div>
-                </div>
-                <!-- card -->
+
                 <div class="card card-sidebar card-mylist wider-card">
                     <div class="card-body">
                         <p class="card-text">
@@ -312,105 +575,59 @@
                             <thead>
                                 <tr class="list-subtitle">
                                     <th scope="col">Deskripsi</th>
-                                    <th scope="col">#</th>
+                                    <th scope="col">jml</th>
                                     <th scope="col">Harga</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr id="row-list">
-                                    <td>Indomie</td>
-                                    <td>1</td>
-                                    <td>Rp3.000</td>
-                                </tr>
-                                <tr id="row-list">
-                                    <td>Elpiji</td>
-                                    <td>1</td>
-                                    <td>Rp17.000</td>
-                                </tr>
-                                <tr id="row-list">
-                                    <td>Fortune</td>
-                                    <td>2</td>
-                                    <td>Rp18.000</td>
-                                </tr>
+
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td>Total</td>
                                     <td></td>
-                                    <td id="list-total-harga">Rp96.000</td>
+                                    <td id="list-total-harga"></td>
                                 </tr>
                             </tfoot>
                         </table>
                         </p>
-                        <div class="btn-list">
-                            <button type="button" class="btn btn-secondary">Hapus</button>
-                            <button type="button" class="btn btn-secondary">Edit</button>
-                        </div>
+
                     </div>
                 </div>
-                <!-- card edit -->
-                <div class="card card-sidebar card-mylist wider-card">
+                <div class="card card-sidebar card-myfavorite wider-card">
                     <div class="card-body">
                         <p class="card-text">
-                        <table id="mylist" class="table">
+                        <table id="myfavorite" class="table">
                             <thead>
                                 <tr class="list-subtitle">
-                                    <th scope="col">Deskripsi</th>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Harga</th>
+                                    <th scope="col">Toko Favoritku</th>
                                     <th scope="col"></th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr id="row-list">
-                                    <td>Indomie</td>
-                                    <td>1</td>
-                                    <td>Rp3.000</td>
-                                    <td><a href="#" onclick="delete_list_item()"><i
-                                                class="fa-solid fa-trash-can"></i></a></td>
 
-                                </tr>
-                                <tr id="row-list">
-                                    <td>Elpiji</td>
-                                    <td>1</td>
-                                    <td>Rp17.000</td>
-                                    <td><a href="#" onclick="delete_list_item()"><i
-                                                class="fa-solid fa-trash-can"></i></a></td>
-                                </tr>
-                                <tr id="row-list">
-                                    <td>Fortune</td>
-                                    <td>2</td>
-                                    <td>Rp18.000</td>
-                                    <td><a href="#" onclick="delete_list_item()"><i
-                                                class="fa-solid fa-trash-can"></i></a></td>
-                                </tr>
+                            <tbody>
+
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td>Total</td>
-                                    <td></td>
-                                    <td id="list-total-harga">Rp96.000</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
+
                         </table>
                         </p>
-                        <div class="btn-list">
-                            <button type="button" class="btn btn-secondary">Selesai</button>
-                        </div>
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
+    <div class="container my-3">
+        <div id="post-box" class="row row-cols-1 row-cols-md-4 g-4">
 
-    <div class="container-lg mt-5">
+        </div>
+    </div>
+    <!-- <div class="container-lg mt-5">
         <div id="produk" class="row row-cols-1 row-cols-md-4 g-4">
             {% for product in products %}
             <div class="col">
                 <div class="card">
-                    <!-- Use the product's image (replace with your actual image source) -->
+
                     <div class="image-container" style="max-height: 80%; overflow: hidden;">
 
                         <img src="{{ url_for('static', filename=product.foto) }}" class="card-img-top"
@@ -424,14 +641,59 @@
                         <p class="card-text">Tersisa {{ product.jumlah }}</p>
                     </div>
                     <div class="d-flex justify-content-around mb-3">
-                        <button class="btn btn-secondary">Tambah Ke MyList</button>
+                        <button class="btn btn-secondary"
+                            onclick="addToMyList('{{ product.namaBarang }}', '{{ product.harga }}', '{{ product.toserbaname }}','{{ product._id }}')">Tambah
+                            Ke MyList</button>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-    </div>
+    </div> -->
+    <!-- Modal -->
+    <div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
 
+                        <div class="mb-3">
+                            <label for="newCustomerName" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="newCustomerName" name="username"
+                                value="{{data['username']}}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Edit password</label>
+                            <div class="d-flex">
+                                <input type="password" class="form-control me-2" id="password" name="password"
+                                    placeholder="password">
+                                <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
+                                    placeholder="new password">
+                            </div>
+
+                        </div>
+                        <div class="mb-3">
+                            <label for="foto" class="form-label">Foto </label>
+                            <input class="form-control" type="file" id="foto" name="foto"
+                                value="{{data['profile_pic']}}">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"

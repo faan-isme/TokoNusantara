@@ -128,12 +128,12 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
-        user_id = payload['id']
-        id_obj = ObjectId(payload['id'])
 
+        id_obj= ObjectId(payload['id'])
+        user_id = payload['id']
+        
         if user_role == 'customer':
             data = db.users.find_one({'_id': id_obj})
-            print(data)
             return render_template('index.html',data=data, username=payload['username'])
         elif user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
@@ -315,6 +315,7 @@ def editProfile():
 @app.route('/get_products', methods=['GET'])
 def get_products():
     kategori = request.args.get('category')
+    use_user_id = request.args.get('use_user_id')
     token_receive = request.cookies.get('token')
     if token_receive:
         try:
@@ -346,31 +347,55 @@ def get_products():
                         }
                     )
             else:
-                posts = list(db.produk.find({'kategori':kategori}))
-                for post in posts:
-                    post["_id"]=str(post["_id"])
-                return jsonify(
-                    {
-                        "result": "success",
-                        "posts": posts
-                        
-                    }
-                )  
+                if kategori== 'Semua':
+                    posts = list(db.produk.find({'seller_id':use_user_id}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    )
+                else:
+                    posts = list(db.produk.find({'seller_id':use_user_id, 'kategori':kategori}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    ) 
         except jwt.ExpiredSignatureError:
             return redirect(url_for("login", msg="Token telah kadaluarsa"))
         except jwt.exceptions.DecodeError:
             return redirect(url_for("login", msg="Terjadi masalah saat login"))
-        
-    posts = list(db.produk.find({'kategori':kategori}))
-    for post in posts:
-        post["_id"]=str(post["_id"])
-    return jsonify(
-        {
-            "result": "success",
-            "posts": posts
-            
-        }
-    )  
+    else:   
+        if kategori== 'Semua':
+            posts = list(db.produk.find())
+            for post in posts:
+                post["_id"]=str(post["_id"])
+            return jsonify(
+                {
+                    "result": "success",
+                    "posts": posts
+                    
+                }
+            )
+        else:
+            posts = list(db.produk.find({'kategori':kategori}))
+            for post in posts:
+                post["_id"]=str(post["_id"])
+            return jsonify(
+                {
+                    "result": "success",
+                    "posts": posts
+                    
+                }
+            ) 
 
 # route jual
 @app.route('/jual', methods=['POST'])
@@ -795,64 +820,64 @@ def get_sellers():
 @app.route('/favorite/seller')
 def favoriteseller():
     token_receive = request.cookies.get('token')
-    if token_receive:
-        try:
-            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-            user_role = payload['role']
-            user_id = payload['id']
-            if user_role == 'customer':
-                
-                 # ambil data favorit seller
-                favorit_data = list(db.myfavorite.find({'user_id': user_id}))
-                id_favorit = [ObjectId(str(fav.get('seller_id'))) for fav in favorit_data]
-
-                # Use the $in operator to find sellers with _id in the id_favorit list
-                seller_exists = list(db.users.find({"_id": {"$in": id_favorit}, "role": "seller"}))
-
-               
-                
-
-                # buat list data
-                result_list = []
-                print(seller_exists)
-                # cek data
-                for seller in seller_exists:
-                    seller_id = str(seller['_id'])
-                    toserbaname = seller['toserbaname']
-                    email = seller['email']
-                    no_telp = seller['no_telp']
-                    alamat = seller['alamat']
-                    profile_pic_real = seller['profile_pic_real']
-                    profile_info = seller['profile_info']
-                    
-                   
-                    
-                    # tambahkan hasil ke list
-                    result_list.append({
-                        'seller_id': seller_id,
-                        'toserbaname':toserbaname,
-                        'email':email,
-                        'no_telp':no_telp,
-                        'alamat':alamat,
-                        'profile_pic_real':profile_pic_real,
-                        'profile_info':profile_info
-                    })
-
-                # kirim hasil
+    
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id = payload['id']
+        if user_role == 'customer':
             
-                return jsonify(
-                    {
-                        "result": "success",
-                        "sellers":result_list
-                        
-                    }
-                )
-            else:
-                return redirect(url_for('login',msg='Role tidak sesuai!'))   
-        except jwt.ExpiredSignatureError:
-            return redirect(url_for("login", msg="Token telah kadaluarsa"))
-        except jwt.exceptions.DecodeError:
-            return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
+                # ambil data favorit seller
+            favorit_data = list(db.myfavorite.find({'user_id': user_id}))
+            id_favorit = [ObjectId(str(fav.get('seller_id'))) for fav in favorit_data]
+
+            # Use the $in operator to find sellers with _id in the id_favorit list
+            seller_exists = list(db.users.find({"_id": {"$in": id_favorit}, "role": "seller"}))
+
+            
+            
+
+            # buat list data
+            result_list = []
+            
+            # cek data
+            for seller in seller_exists:
+                seller_id = str(seller['_id'])
+                toserbaname = seller['toserbaname']
+                email = seller['email']
+                no_telp = seller['no_telp']
+                alamat = seller['alamat']
+                profile_pic_real = seller['profile_pic_real']
+                profile_info = seller['profile_info']
+                
+                
+                
+                # tambahkan hasil ke list
+                result_list.append({
+                    'seller_id': seller_id,
+                    'toserbaname':toserbaname,
+                    'email':email,
+                    'no_telp':no_telp,
+                    'alamat':alamat,
+                    'profile_pic_real':profile_pic_real,
+                    'profile_info':profile_info
+                })
+
+            # kirim hasil
+        
+            return jsonify(
+                {
+                    "result": "success",
+                    "sellers":result_list
+                    
+                }
+            )
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
     
 @app.route('/get_produk', methods=['GET'])
 def get_produk():
@@ -887,28 +912,58 @@ def get_produk():
 
 @app.route('/user/<toserbaname>')
 def seller_profile(toserbaname):
-    try:
-        # Fetch seller data based on toserbaname from the database
-        seller = db.users.find_one({"toserbaname": toserbaname, "role": "seller"})
+    token_receive = request.cookies.get('token')
+    if token_receive:
+        try:
+            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            username= payload['username']
+            
+            
+            try:
+                # Fetch seller data based on toserbaname from the database
+                seller = db.users.find_one({"toserbaname": toserbaname, "role": "seller"})
+                
+                if seller:
+                    seller_id = seller.get("_id")
+
+                    # Fetch products associated with the seller's toserbaname
+                    products = db.produk.find({"seller_id": str(seller_id)})
+
+                    # Render the seller profile page with the fetched data
+                    return render_template('profileSeller_customerView.html',username=username, data=seller, products=products)
+                else:
+                    # Handle case where seller not found
+                    return render_template('error.html', error_message="An error occurred while fetching seller profile.")
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Error in seller_profile route: {e}")
+                return render_template('error.html', error_message="An error occurred while fetching seller profile.")
+            
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for("login", msg="Token telah kadaluarsa"))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="Terjadi masalah saat login"))
+    else:
+        try:
+            # Fetch seller data based on toserbaname from the database
+            seller = db.users.find_one({"toserbaname": toserbaname, "role": "seller"})
+            
+            if seller:
+                seller_id = seller.get("_id")
+
+                # Fetch products associated with the seller's toserbaname
+                products = db.produk.find({"seller_id": str(seller_id)})
+
+                # Render the seller profile page with the fetched data
+                return render_template('profileSeller_customerView.html', data=seller, products=products)
+            else:
+                # Handle case where seller not found
+                return render_template('error.html', error_message="An error occurred while fetching seller profile.")
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error in seller_profile route: {e}")
+            return render_template('error.html', error_message="An error occurred while fetching seller profile.")
         
-        if seller:
-            # Extract necessary details from the seller data
-            username = seller.get("username", "No Username")
-            seller_id = seller.get("_id")
-
-            # Fetch products associated with the seller's toserbaname
-            products = db.produk.find({"seller_id": str(seller_id)})
-
-            # Render the seller profile page with the fetched data
-            return render_template('profileSeller_customerView.html', toserbaname=toserbaname, username=username, data=seller, products=products)
-        else:
-            # Handle case where seller not found
-            return render_template('profileSeller_customerView.html', toserbaname=toserbaname, username="No Username", data=None, products=[])
-    except Exception as e:
-        # Log the error for debugging
-        print(f"Error in seller_profile route: {e}")
-        return render_template('error.html', error_message="An error occurred while fetching seller profile.")
-
 @app.route('/add_to_mylist', methods=['POST'])
 def add_to_mylist():
     token_receive = request.cookies.get('token')
@@ -1015,11 +1070,10 @@ def remove_mylist():
                 # Return a success response to the client
                 return jsonify({"result": "success"})
             else:
-                return jsonify({"result": "fail"})
-            
-            
+                return jsonify({"result": "fail"})  
         else:
-            return redirect(url_for('login',msg='Role tidak sesuai!'))  
+            return redirect(url_for('login',msg='Role tidak sesuai!')) 
+         
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="Token telah kadaluarsa"))
     except jwt.exceptions.DecodeError:
