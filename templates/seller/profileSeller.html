@@ -317,14 +317,14 @@
             $('#info-email')
                 .text('Email toko tidak boleh kosong!')
                 .removeClass('d-none');
-            $("#toserbaname").focus();
+            $("#email").focus();
             return;
         }
         if (!is_email(email)) {
             $('#info-email')
                 .text('Masukkan email')
                 .removeClass('d-none');
-            $("#no_telp").focus();
+            $("#email").focus();
             return;
         }
         if (password && newPassword || password && !newPassword) {
@@ -332,7 +332,7 @@
                 $('#info-password')
                     .text('Silakan masukkan 8-20 karakter  huruf, angka, atau karakter khusus berikut (!@#$%^&*)')
                     .removeClass('d-none');
-                $("#tosebaname").focus();
+                $("#password").focus();
                 return;
             }
         }

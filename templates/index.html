@@ -164,6 +164,94 @@
             getProducts();
             getMyListItems();
         });
+        function is_name(asValue) {
+            // boleh huruf dan angka, minimal 3 char, maksimal 15 char, 
+            let regExp = /^[a-zA-Z0-9_-]{3,20}$/;
+            return regExp.test(asValue);
+        }
+        function is_email(asValue) {
+            let regExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return regExp.test(asValue);
+        }
+        function is_foto(asValue) {
+            //hanya menerima jpg, jpeg dan png
+            let regExp = /^.*\.(jpg|jpeg|png)$/i;
+            // ukuran maksimal 2MB
+            let maxFileSize = 2000000; // 2MB
+            return regExp.test(asValue.name.toLowerCase()) && asValue.size <= maxFileSize;
+        }
+        function submitForm() {
+            // Mengambil referensi ke formulir
+            let username = $('#newCustomerName').val()
+            let password = $('#password').val()
+            let newPassword = $('#newPassword').val()
+            let email = $('#email').val()
+            let foto = $('#foto')[0].files[0];
+            var form = document.getElementById('formEditProfile');
+            // Melakukan pengiriman formulir secara manual
+
+            if (username === '') {
+                $('#info-name')
+                    .text('Username tidak boleh kosong!')
+                    .removeClass('d-none');
+                $("#newCustomerName").focus();
+    
+                return;
+            }
+            if (!is_name(username)) {
+                $('#info-name')
+                    .text('Hanya masukkan angka dan huruf, minimal 3 karakter Maksimal 20 karakter !')
+                    .removeClass('d-none');
+                $("#newCustomerName").focus();
+                return;
+            }
+            if (email === '') {
+                $('#info-email')
+                    .text('Email toko tidak boleh kosong!')
+                    .removeClass('d-none');
+                $("#email").focus();
+                return;
+            }
+            if (!is_email(email)) {
+                $('#info-email')
+                    .text('Masukkan email')
+                    .removeClass('d-none');
+                $("#email").focus();
+                return;
+            }
+            if (password && newPassword || password && !newPassword) {
+                if (!is_password(newPassword) || !is_password(password)) {
+                    $('#info-password')
+                        .text('Silakan masukkan 8-20 karakter  huruf, angka, atau karakter khusus berikut (!@#$%^&*)')
+                        .removeClass('d-none');
+                    $("#password").focus();
+                    return;
+                }
+            }
+
+            if (foto) {
+                if (!is_foto(foto)) {
+                    $('#info-foto')
+                        .text('Hanya menerima JPG, JPEG dan PNG, Maksimal 2MB !')
+                        .removeClass('d-none');
+                    $("#foto").focus();
+                    return;
+                }
+            }
+
+            form.submit();
+        }
+        
+        function refresh() {
+            $('#newCustomerName').val("{{data['username']}}");
+            $('#email').val("{{data['email']}}");
+            $('#foto').val("{{data['profile_pic']}}");
+            $('#info-foto').addClass('d-none');
+            $('#info-password').addClass('d-none');
+            $('#info-email').addClass('d-none');
+            $('#info-name').addClass('d-none');
+           
+        }
         //ambil data seller
         function getSellers() {
             $.ajax({
@@ -220,7 +308,7 @@
                                 var tableFav = `
                                     <tr>
                                         <td><a href="/user/${seller.toserbaname}">${seller.toserbaname}</a></td>                     
-                                        <td class="text-end"><a href="#" onclick="delfav('${seller.seller_id}')"><i class="fa-solid fa-trash-can"></i></a></td>   
+                                        <td class="text-end"><a href="#" onclick="delfav('${seller.seller_id}')"><i class="fa-solid fa-trash-can" style="color:red"></i></a></td>   
                                     </tr>`;
                                 myFavoriteTableBody.append(tableFav)
                             }
@@ -257,8 +345,10 @@
             produkContainer.empty();
 
             // Iterate through the products and append cards to the container
-            products.forEach(function (product) {
-
+            for (let i = 0; i < Math.min(8, products.length); i++) {
+                var product = products[i];
+            //products.forEach(function (product) {
+                let hargapcs =formatRupiah(product.harga)
                 var cardHtml = `
                             <div class="col">
                                 <div class="card">
@@ -269,7 +359,7 @@
                                         <h5 class="card-title">${product.namaBarang}</h5>
                                         <p class="card-name">${product.toserbaname}</p>
                                         <p class="card-text">${product.desc}</p>
-                                        <p class="card-text">Rp. ${product.harga}</p>
+                                        <p class="card-text">${hargapcs}</p>
                                         <p class="card-text">Tersisa ${product.jumlah}</p>
                                     </div>
                                     <div class="d-flex justify-content-around mb-3">
@@ -280,7 +370,8 @@
 
                 // Append the card HTML to the container
                 produkContainer.append(cardHtml);
-            });
+            };
+            //});
         }
 
 
@@ -306,24 +397,35 @@
             var totalPrice = 0;
 
             mylistItems.forEach(function (item) {
-
+                let hargapcs =formatRupiah(item.harga)
                 var rowHtml = `
                              <tr id="row-list">
                                  <td>${item.namaProduk}<br><a class="mylist-tokoname" href="/user/${item.toserbaname}" >${item.toserbaname}</a></td>
                                  <td>${item.jumlah}</td>
-                                 <td>Rp ${item.harga}</td>
+                                 <td>${hargapcs}</td>
                                  <td><a href="#" onclick="deleteListItem('${item.listId}')"><i class="fa-solid fa-trash-can" style="color:red;"></i></a></td>
                              </tr>`;
                 myListTableBody.append(rowHtml);
 
                 // Calculate total price
-                totalPrice += parseFloat(item.harga);
+                totalPrice += parseFloat(item.harga)*parseInt(item.jumlah);
             });
 
             // Update the total price in the table footer
-            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
+            $("#list-total-harga").text(formatRupiah(totalPrice));
         }
-
+        function formatRupiah(amount) {
+            // Check if the input is a valid number
+            amount =parseFloat(amount)
+            if (isNaN(amount)) {
+                return "Invalid input";
+            }
+        
+            // Convert the number to a string and add thousand separators
+            let formattedAmount = amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
+        
+            return formattedAmount;
+        }
 
 
         function deleteListItem(rowId) {
@@ -336,7 +438,6 @@
                     if (response["result"] === "success") {
                         alert("Berhasil dihapus");
                         getMyListItems();
-                        updateTotalPrice();
                     } else {
                         alert("Gagal dihapus");
                     }
@@ -433,39 +534,7 @@
                 data: JSON.stringify(data),
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
-                    // Handle success (if needed)
-                    console.log("Product added to MyList:", response);
-
-                    // Check if the product is already in the MyList
-                    var existingRow = $("#mylist tbody tr:contains('" + namaProduk + "')");
-
-                    if (existingRow.length > 0) {
-                        // If the product is already in the MyList, update quantity and total price
-                        var existingQuantity = parseInt(existingRow.find('td:eq(1)').text());
-                        existingRow.find('td:eq(1)').text(existingQuantity + 1);
-
-                        var existingPrice = parseFloat(existingRow.find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
-                        var newTotalPrice = existingPrice + harga;
-                        existingRow.find('td:eq(2)').text("Rp " + newTotalPrice.toFixed(2));
-                    } else {
-                        // If the product is not in the MyList, add a new row
-                        var rowHtml = `
-                            <tr id="row-list">
-                                <td>${namaProduk}
-                                    <br>
-                                    <p class="mylist-tokoname">${toserbaname}
-                                    </p>
-                                </td>
-                                <td>1</td>
-                                <td>Rp ${harga.toFixed(2)}</td>
-                            </tr>`;
-
-                        // Append the new row to the MyList table
-                        $("#mylist tbody").append(rowHtml);
-                    }
-
-                    // Update the total price in the table footer
-                    updateTotalPrice();
+                    
                     alert("Berhasil di tambahkan!");
                     location.reload(true)
 
@@ -476,30 +545,6 @@
             });
         }
 
-        // Function to update the total price in the table footer
-        function updateTotalPrice() {
-            var totalPrice = 0;
-
-            $("#mylist tbody tr").each(function () {
-                var price = parseFloat($(this).find('td:eq(2)').text().replace('Rp ', '').replace(',', ''));
-                totalPrice += price;
-            });
-
-            // Update the total price in the table footer
-            $("#list-total-harga").text("Rp " + totalPrice.toFixed(2));
-        }
-
-        function confirmLogout() {
-            // Show a confirmation alert
-            var confirmLogout = confirm("Are you sure you want to logout?");
-
-            // If the user confirms, redirect to the logout page
-            if (confirmLogout) {
-                window.location.href = "/logout";
-            }
-            alert("Kamu Sudah Logout");
-
-        }
 
         function showAlert() {
             alert("Please log in to use this feature.");
@@ -524,6 +569,7 @@
                         let posts = response["posts"];
                         for (let i = 0; i < posts.length; i++) {
                             let post = posts[i];
+                            let hargapcs =formatRupiah(post['harga'])
                             let html_temp = `
                                             
 
@@ -536,7 +582,7 @@
                                         <h5 class="card-title">${post['namaBarang']}</h5>
                                         <p class="card-name">${post['toserbaname']}</p>
                                         <p class="card-text">${post['desc']}</p>
-                                        <p class="card-text">Rp. ${post['harga']}</p>
+                                        <p class="card-text">${hargapcs}</p>
                                         <p class="card-text">Tersisa ${post['jumlah']}</p>
                                     </div>
                                     <div class="d-flex justify-content-around mb-3">
@@ -574,7 +620,7 @@
         </div>
         <div class="nav-logout">
             {% if username %}
-            <a href="/logout" onclick="confirmLogout()" class="logout"><i
+            <a href="/logout" data-bs-target="#logoutKonfirmasi" data-bs-toggle="modal" class="logout"><i
                     class="fa-solid fa-arrow-right-from-bracket fa-lg" style="color: #000000;"></i></a>
             {% else %}
             <a href="/login" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
@@ -633,13 +679,16 @@
         </div>
         <div class="offcanvas-body">
             <div class="d-flex flex-column align-items-center">
-                <figure class="figure">
-                    <img src="{{ url_for('static', filename=data['profile_pic_real']) }}"
-                        class="figure-img img-fluid rounded" alt="...">
+                
+                    <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
+                        <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
+                            style="height: 100%;">
+    
+                    </div>
                     <figcaption class="figure-caption">{{username}}</figcaption>
                     <!-- link edit profile tambahkan modal -->
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfile" >Edit</button>
-                </figure>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfile" onclick="refresh()">Edit</button>
+                
                 <h5>MyList</h5>
                 
                 <div class="card card-sidebar card-mylist wider-card">
@@ -724,71 +773,94 @@
         </div>
     </div>
 
-        <!-- Modal -->
-        <div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal -->
+<div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
+
+                    <div class="mb-3">
+                        <label for="newCustomerName" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="newCustomerName" name="username"
+                            value="{{data['username']}}">
+                        <p id="info-name" class="text-danger d-none"></p>
                     </div>
-                    <div class="modal-body">
-                        <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
-    
-                            <div class="mb-3">
-                                <label for="newCustomerName" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="newCustomerName" name="username"
-                                    value="{{data['username']}}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="newPassword" class="form-label">Edit password</label>
-                                <div class="d-flex">
-                                    <input type="password" class="form-control me-2" id="password" name="password"
-                                        placeholder="password">
-                                    <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
-                                        placeholder="new password">
-                                </div>
-    
-                            </div>
-                            <div class="mb-3">
-                                <label for="foto" class="form-label">Foto </label>
-                                <input class="form-control" type="file" id="foto" name="foto"
-                                    value="{{data['profile_pic']}}">
-                            </div>
-                        </form>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
+                        <p id="info-email" class="text-danger d-none"></p>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Edit password</label>
+                        <div class="d-flex">
+                            <input type="password" class="form-control me-2" id="password" name="password"
+                                placeholder="password">
+                            <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
+                                placeholder="new password">
+                        </div>
+                        <p id="info-password" class="text-danger d-none"></p>
+
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">Foto </label>
+                        <input class="form-control" type="file" id="foto" name="foto"
+                            value="{{data['profile_pic']}}">
+                        <p id="info-foto" class="text-danger d-none"></p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
             </div>
         </div>
-
-    <div class="container">
-        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-            <div class="col-md-4 d-flex align-items-center">
-                <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
-                    <img src="/static/logo.png" alt="" style="max-height: 25px;">
-                </a>
-
-            </div>
-            <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
-            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
-                            style="color: #f457c3;"></i></a></li>
-                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
-                            style="color: #eb2424;"></i></a></li>
-                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
-                            style="color: #0b53d0;"></i></a></li>
-
-            </ul>
-        </footer>
     </div>
+</div>
+<div class="modal fade" id="logoutKonfirmasi" aria-hidden="true" aria-labelledby="logoutTitle"
+tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="logoutTitle">Konfirmasi Logout</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Apakah anda yakin ingin logout ?
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-warning " data-bs-dismiss="modal" type="button"
+                onclick="window.location.href = '/logout';">Konfirmasi</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="container-fluid sticky-bottom bg-white" style="box-shadow: 0rem -0.13rem 3px rgba(0, 0, 0, 0.15) !important;">
+    <footer class="container d-flex flex-wrap justify-content-between align-items-center py-2  border-top">
+        <div class="col-md-4 d-flex align-items-center">
+            <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">
+            </a>
+
+        </div>
+        <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
+        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
+                        style="color: #f457c3;"></i></a></li>
+            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
+                        style="color: #eb2424;"></i></a></li>
+            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
+                        style="color: #0b53d0;"></i></a></li>
+
+        </ul>
+    </footer>
+</div>
 
 </body>
 

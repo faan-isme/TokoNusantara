@@ -186,7 +186,7 @@ def editProfile():
     newPassword_receive = request.form.get('newPassword')
     alamat_receive = request.form.get('alamat')
     noTelp_receive = request.form.get('no_telp')
-    profile_receive = request.files.get('foto-prof')
+    profile_receive = request.files.get('foto')
     desc_receive = request.form.get('desc')
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
@@ -317,143 +317,220 @@ def get_products():
     kategori = request.args.get('category')
     use_user_id = request.args.get('use_user_id')
     token_receive = request.cookies.get('token')
+    
     if token_receive:
         try:
             payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
             user_role = payload['role']
-            user_id = payload['id']
             
-            if user_role == 'seller':
-                if kategori== 'Semua':
-                    posts = list(db.produk.find({'seller_id':user_id}))
-                    for post in posts:
-                        post["_id"]=str(post["_id"])
-                    return jsonify(
-                        {
-                            "result": "success",
-                            "posts": posts
-                            
-                        }
-                    )
+            
+            if user_role == 'customer':
+                if use_user_id:
+                    if kategori== 'Semua':
+                        posts = list(db.produk.find({'seller_id':use_user_id}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
+                    else:
+                        posts = list(db.produk.find({'kategori':kategori,'seller_id':use_user_id}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
                 else:
-                    posts = list(db.produk.find({'seller_id':user_id, 'kategori':kategori}))
-                    for post in posts:
-                        post["_id"]=str(post["_id"])
-                    return jsonify(
-                        {
-                            "result": "success",
-                            "posts": posts
-                            
-                        }
-                    )
+                    if kategori== 'Semua':
+                        posts = list(db.produk.find())
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
+                    else:
+                        posts = list(db.produk.find({'kategori':kategori}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
+                
             else:
-                if kategori== 'Semua':
-                    posts = list(db.produk.find({'seller_id':use_user_id}))
-                    for post in posts:
-                        post["_id"]=str(post["_id"])
-                    return jsonify(
-                        {
-                            "result": "success",
-                            "posts": posts
-                            
-                        }
-                    )
+                seller_id =payload['toserbaname']
+                if use_user_id:
+                    if kategori== 'Semua':
+                        posts = list(db.produk.find({'seller_id':seller_id}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
+                    else:
+                        posts = list(db.produk.find({'kategori':kategori,'seller_id':seller_id}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
                 else:
-                    posts = list(db.produk.find({'seller_id':use_user_id, 'kategori':kategori}))
-                    for post in posts:
-                        post["_id"]=str(post["_id"])
-                    return jsonify(
-                        {
-                            "result": "success",
-                            "posts": posts
-                            
-                        }
-                    ) 
+                    if kategori== 'Semua':
+                        posts = list(db.produk.find())
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
+                    else:
+                        posts = list(db.produk.find({'kategori':kategori}))
+                        for post in posts:
+                            post["_id"]=str(post["_id"])
+                        return jsonify(
+                            {
+                                "result": "success",
+                                "posts": posts
+                                
+                            }
+                        )
         except jwt.ExpiredSignatureError:
             return redirect(url_for("login", msg="Token telah kadaluarsa"))
         except jwt.exceptions.DecodeError:
             return redirect(url_for("login", msg="Terjadi masalah saat login"))
     else:   
-        if kategori== 'Semua':
-            posts = list(db.produk.find())
-            for post in posts:
-                post["_id"]=str(post["_id"])
-            return jsonify(
-                {
-                    "result": "success",
-                    "posts": posts
-                    
-                }
-            )
+        if use_user_id:
+            if kategori== 'Semua':
+                posts = list(db.produk.find({'seller_id':use_user_id}))
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
+            else:
+                posts = list(db.produk.find({'kategori':kategori,'seller_id':use_user_id}))
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
         else:
-            posts = list(db.produk.find({'kategori':kategori}))
-            for post in posts:
-                post["_id"]=str(post["_id"])
-            return jsonify(
-                {
-                    "result": "success",
-                    "posts": posts
-                    
-                }
-            ) 
+            if kategori== 'Semua':
+                posts = list(db.produk.find())
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
+            else:
+                posts = list(db.produk.find({'kategori':kategori}))
+                for post in posts:
+                    post["_id"]=str(post["_id"])
+                return jsonify(
+                    {
+                        "result": "success",
+                        "posts": posts
+                        
+                    }
+                )
+    
+         
 
-# route jual
-@app.route('/jual', methods=['POST'])
-def jual():
-    token_receive = request.cookies.get('token')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-        user_role = payload['role']
-        user_id=payload['id']
-        if user_role == 'seller':
-            data_list = request.json
-            for item in data_list:
+    # route jual
+    @app.route('/jual', methods=['POST'])
+    def jual():
+        token_receive = request.cookies.get('token')
+        try:
+            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            user_role = payload['role']
+            user_id=payload['id']
+            if user_role == 'seller':
+                data_list = request.json
+                for item in data_list:
+                    
+                    id_obj =ObjectId(item['id'])
+                    result = db.produk.find_one({'_id':id_obj})
+                    if not result:
+                        return jsonify(
+                            {
+                                "result": "fail",
+                                
+                            }
+                        )
+                # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
+                for item in data_list:
+                    # tambahkan id barang
+                    nama= item['nama']
+                    jumlah= int(item['jumlah'])
+                    tanggal= item['tanggal']
+                    id_obj =ObjectId(item['id'])
+                    # cari jumlah produk
+                    produk = db.produk.find_one({'_id':id_obj})
+                    stok =int(produk.get('jumlah'))
+                    # update stok
+                    updatestok = str(stok-jumlah)
+                    db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
+                    # masukkan ke hostori transaksi
+                    doc ={
+                        'tanggal':tanggal,
+                        'namaBarang':nama,
+                        'jumlah':jumlah,
+                        'seller_id':user_id
+                    }
+                    db.histori.insert_one(doc)
                 
-                id_obj =ObjectId(item['id'])
-                result = db.produk.find_one({'_id':id_obj})
-                if not result:
-                    return jsonify(
-                        {
-                            "result": "fail",
-                            
-                        }
-                    )
-            # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
-            for item in data_list:
-                # tambahkan id barang
-                nama= item['nama']
-                jumlah= int(item['jumlah'])
-                tanggal= item['tanggal']
-                id_obj =ObjectId(item['id'])
-                # cari jumlah produk
-                produk = db.produk.find_one({'_id':id_obj})
-                stok =int(produk.get('jumlah'))
-                # update stok
-                updatestok = str(stok-jumlah)
-                db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
-                # masukkan ke hostori transaksi
-                doc ={
-                    'tanggal':tanggal,
-                    'namaBarang':nama,
-                    'jumlah':jumlah,
-                    'seller_id':user_id
-                }
-                db.histori.insert_one(doc)
-            
-            
-            return jsonify(
-                {
-                    "result": "success",
-                    
-                }
-            )
+                
+                return jsonify(
+                    {
+                        "result": "success",
+                        
+                    }
+                )
 
-        else:
-            return redirect(url_for('home',msg='Role tidak sesuai!'))   
-    except jwt.ExpiredSignatureError:
-        return redirect(url_for("login", msg="Token telah kadaluarsa"))
-    except jwt.exceptions.DecodeError:
-        return redirect(url_for("login", msg="Terjadi masalah saat login"))
+            else:
+                return redirect(url_for('home',msg='Role tidak sesuai!'))   
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for("login", msg="Token telah kadaluarsa"))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
 
     
@@ -772,7 +849,8 @@ def get_sellers():
                 return jsonify(
                     {
                         "result": "success",
-                        "sellers":result_list
+                        "sellers":result_list,
+                        "login":True
                         
                     }
                 )
@@ -916,8 +994,8 @@ def seller_profile(toserbaname):
     if token_receive:
         try:
             payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-            username= payload['username']
-            
+            id= payload['id']
+            mydata=db.users.find_one({'_id':ObjectId(id)})
             
             try:
                 # Fetch seller data based on toserbaname from the database
@@ -928,9 +1006,10 @@ def seller_profile(toserbaname):
 
                     # Fetch products associated with the seller's toserbaname
                     products = db.produk.find({"seller_id": str(seller_id)})
+                    total_items = db.produk.count_documents({'seller_id': str(seller_id)})
 
                     # Render the seller profile page with the fetched data
-                    return render_template('profileSeller_customerView.html',username=username, data=seller, products=products)
+                    return render_template('profileSeller_customerView.html',mydata=mydata, data=seller, products=products, total_items= total_items)
                 else:
                     # Handle case where seller not found
                     return render_template('error.html', error_message="An error occurred while fetching seller profile.")
@@ -953,9 +1032,9 @@ def seller_profile(toserbaname):
 
                 # Fetch products associated with the seller's toserbaname
                 products = db.produk.find({"seller_id": str(seller_id)})
-
+                total_items = db.produk.count_documents({'seller_id': str(seller_id)})
                 # Render the seller profile page with the fetched data
-                return render_template('profileSeller_customerView.html', data=seller, products=products)
+                return render_template('profileSeller_customerView.html', data=seller, products=products, total_items= total_items,mydata=False)
             else:
                 # Handle case where seller not found
                 return render_template('error.html', error_message="An error occurred while fetching seller profile.")
@@ -983,20 +1062,26 @@ def add_to_mylist():
                 harga = data.get('harga')
                 toserbaname = data.get('toserbaname')
                 barangId = data.get('barangId')
-
-                
-                product = db.produk.find_one({'_id': ObjectId(barangId)})
-                if product:
-                    mylist_doc = {
-                        'userId':user_id,
-                        'username': username,
-                        'namaProduk': namaProduk,
-                        'harga': harga,
-                        'toserbaname': toserbaname,
-                        'barangId':barangId,
-                        'jumlah':1
-                    }
-                    db.mylist.insert_one(mylist_doc)
+                result = db.mylist.find_one({'userId':user_id,'barangId':barangId})
+                if result:
+                    product = db.produk.find_one({'_id': ObjectId(barangId)})
+                    jumlah = int(result.get('jumlah'))+1
+                    db.mylist.update_one({'userId':user_id,'barangId':barangId},{'$set':{'jumlah':jumlah}})
+                    
+                    
+                else:
+                    product = db.produk.find_one({'_id': ObjectId(barangId)})
+                    if product:
+                        mylist_doc = {
+                            'userId':user_id,
+                            'username': username,
+                            'namaProduk': namaProduk,
+                            'harga': harga,
+                            'toserbaname': toserbaname,
+                            'barangId':barangId,
+                            'jumlah':1
+                        }
+                        db.mylist.insert_one(mylist_doc)
 
                 # Return a success response to the client
                 return jsonify({"success": True, "message": "Product added to MyList successfully"})
