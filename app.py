@@ -29,7 +29,7 @@ db = client.toknus
 # route landing page
 @app.route('/')
 def landingpage():
-    return render_template('index.html')
+    return render_template('index.html',data='', username='')
 # route logout
 @app.route('/logout')
 def logout():
@@ -129,11 +129,12 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
-        user_id = payload['id']
+        user_id = ObjectId(payload['id'])
         
         if user_role == 'customer':
-            data = db.users.find({'customer_id': user_id})
-            return render_template('index.html', username=payload['username'])
+            data = db.users.find_one({'_id': user_id})
+            print(data)
+            return render_template('index.html',data=data, username=payload['username'])
         elif user_role == 'seller':
             data = db.produk.find({'seller_id':user_id})
             return render_template('seller/homeSeller.html',data=data, msg=msg)
@@ -145,8 +146,7 @@ def home():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
-    # apabila tidak ada login, hanya memuat laman tanpa payload
-    return render_template('index.html', msg=msg)
+
     
 #route profile 
 @app.route('/profile')
@@ -162,7 +162,7 @@ def profile():
         data = db.users.find_one({'_id': id_obj})
         user_role = payload['role']
         if user_role == 'customer':
-            return render_template('profileCustomer.html',data=data,msg=msg)
+            return render_template('profileCustomer.html',data=data,msg=msg,username=payload['username'])
         elif user_role == 'seller':
             return render_template('seller/profileSeller.html',data=data,msg=msg)
         else:
@@ -697,86 +697,161 @@ def upload_product_photo(product_photo, product_id):
 @app.route('/get_sellers', methods=['GET'])
 def get_sellers():
     token_receive = request.cookies.get('token')
-    try:
-        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-        user_role = payload['role']
-        user_id = payload['id']
-        if user_role == 'customer':
-            
-            
-            # ambil semua seller
-            seller_exists = list(db.users.find({"role": "seller"}))
-
-            # ambil data favorit seller
-            favorit_data = list(db.myfavorite.find({'user_id': user_id}))
-            
-
-            # buat list data
-            result_list = []
-
-            # cek data
-            for seller in seller_exists:
-                seller_id = str(seller['_id'])
-                toserbaname = seller['toserbaname']
-                email = seller['email']
-                no_telp = seller['no_telp']
-                alamat = seller['alamat']
-                profile_pic_real = seller['profile_pic_real']
-                profile_info = seller['profile_info']
+    if token_receive:
+        try:
+            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            user_role = payload['role']
+            user_id = payload['id']
+            if user_role == 'customer':
                 
-                # jika id sama set yes
-                favorit_status = next((fav.get('favorit', 'yes') for fav in favorit_data if fav.get('seller_id') == seller_id), 'no')
                 
-                # tambahkan hasil ke list
-                result_list.append({
-                    'seller_id': seller_id,
-                    'favorit': favorit_status,
-                    'toserbaname':toserbaname,
-                    'email':email,
-                    'no_telp':no_telp,
-                    'alamat':alamat,
-                    'profile_pic_real':profile_pic_real,
-                    'profile_info':profile_info
-                })
+                # ambil semua seller
+                seller_exists = list(db.users.find({"role": "seller"}))
 
-            # kirim hasil
-           
-            return jsonify(
-                {
-                    "result": "success",
-                    "sellers":result_list
+                # ambil data favorit seller
+                favorit_data = list(db.myfavorite.find({'user_id': user_id}))
+                
+
+                # buat list data
+                result_list = []
+
+                # cek data
+                for seller in seller_exists:
+                    seller_id = str(seller['_id'])
+                    toserbaname = seller['toserbaname']
+                    email = seller['email']
+                    no_telp = seller['no_telp']
+                    alamat = seller['alamat']
+                    profile_pic_real = seller['profile_pic_real']
+                    profile_info = seller['profile_info']
                     
-                }
-            )
-        else:
-            return redirect(url_for('login',msg='Role tidak sesuai!'))   
-    except jwt.ExpiredSignatureError:
-        return redirect(url_for("login", msg="Token telah kadaluarsa"))
-    except jwt.exceptions.DecodeError:
-        return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
-    # try:
-    #     # Fetch sellers from the database
-    #     favorit = db.myfavorite.find()
-    #     sellers = db.users.find({"role": "seller"})
-    #     seller_list = []
+                    # jika id sama set yes
+                    favorit_status = next((fav.get('favorit', 'yes') for fav in favorit_data if fav.get('seller_id') == seller_id), 'no')
+                    
+                    # tambahkan hasil ke list
+                    result_list.append({
+                        'seller_id': seller_id,
+                        'favorit': favorit_status,
+                        'toserbaname':toserbaname,
+                        'email':email,
+                        'no_telp':no_telp,
+                        'alamat':alamat,
+                        'profile_pic_real':profile_pic_real,
+                        'profile_info':profile_info
+                    })
 
-    #     # Create a list of seller details
-    #     for seller in sellers:
-    #         seller_details = {
-    #             "sellerId": str(seller.get("_id")),
-    #             "toserbaname": seller.get("toserbaname"),
-    #             "profile_info": seller.get("profile_info"),
-    #             "no_telp": seller.get("no_telp"),
-    #             "alamat": seller.get("alamat"),
-    #             "profile_pic_real": seller.get("profile_pic_real"),
-    #         }
-    #         seller_list.append(seller_details)
+                # kirim hasil
+            
+                return jsonify(
+                    {
+                        "result": "success",
+                        "sellers":result_list
+                        
+                    }
+                )
+            else:
+                return redirect(url_for('login',msg='Role tidak sesuai!'))   
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for("login", msg="Token telah kadaluarsa"))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
+    else:
+        # ambil semua seller
+        seller_exists = list(db.users.find({"role": "seller"}))
+        # buat list data
+        result_list = []
+        # cek data
+        for seller in seller_exists:
+            seller_id = str(seller['_id'])
+            toserbaname = seller['toserbaname']
+            email = seller['email']
+            no_telp = seller['no_telp']
+            alamat = seller['alamat']
+            profile_pic_real = seller['profile_pic_real']
+            profile_info = seller['profile_info']
+         # tambahkan hasil ke list
+            result_list.append({
+                'seller_id': seller_id,
+                'favorit': 'no',
+                'toserbaname':toserbaname,
+                'email':email,
+                'no_telp':no_telp,
+                'alamat':alamat,
+                'profile_pic_real':profile_pic_real,
+                'profile_info':profile_info
+            })
+         # kirim hasil
+            
+        return jsonify(
+            {
+                "result": "success",
+                "sellers":result_list
+                
+            }
+        )
 
-    #     return jsonify({"success": True, "sellers": seller_list})
+@app.route('/favorite/seller')
+def favoriteseller():
+    token_receive = request.cookies.get('token')
+    if token_receive:
+        try:
+            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            user_role = payload['role']
+            user_id = payload['id']
+            if user_role == 'customer':
+                
+                 # ambil data favorit seller
+                favorit_data = list(db.myfavorite.find({'user_id': user_id}))
+                id_favorit = [ObjectId(str(fav.get('seller_id'))) for fav in favorit_data]
 
-    # except Exception as e:
-    #     return jsonify({"success": False, "message": str(e)})
+                # Use the $in operator to find sellers with _id in the id_favorit list
+                seller_exists = list(db.users.find({"_id": {"$in": id_favorit}, "role": "seller"}))
 
+               
+                
+
+                # buat list data
+                result_list = []
+                print(seller_exists)
+                # cek data
+                for seller in seller_exists:
+                    seller_id = str(seller['_id'])
+                    toserbaname = seller['toserbaname']
+                    email = seller['email']
+                    no_telp = seller['no_telp']
+                    alamat = seller['alamat']
+                    profile_pic_real = seller['profile_pic_real']
+                    profile_info = seller['profile_info']
+                    
+                   
+                    
+                    # tambahkan hasil ke list
+                    result_list.append({
+                        'seller_id': seller_id,
+                        'toserbaname':toserbaname,
+                        'email':email,
+                        'no_telp':no_telp,
+                        'alamat':alamat,
+                        'profile_pic_real':profile_pic_real,
+                        'profile_info':profile_info
+                    })
+
+                # kirim hasil
+            
+                return jsonify(
+                    {
+                        "result": "success",
+                        "sellers":result_list
+                        
+                    }
+                )
+            else:
+                return redirect(url_for('login',msg='Role tidak sesuai!'))   
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for("login", msg="Token telah kadaluarsa"))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
+    
 @app.route('/get_produk', methods=['GET'])
 def get_produk():
     try:
@@ -788,6 +863,7 @@ def get_produk():
         # Create a list of seller details
         for produk in produks:
             produk_details = {
+                "barangId":str( produk.get("_id")),
                 "namaBarang": produk.get("namaBarang"),
                 "jumlah": produk.get("jumlah"),
                 "harga": produk.get("harga"),
@@ -833,31 +909,51 @@ def seller_profile(toserbaname):
 
 @app.route('/add_to_mylist', methods=['POST'])
 def add_to_mylist():
+    token_receive = request.cookies.get('token')
     try:
-        # Get the JSON data from the request
-        data = request.json
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id = payload['id']
+        
+        if user_role == 'customer':
+            try:
+                # Get the JSON data from the request
+                data = request.json
 
-        # Extract relevant information from the JSON data
-        username = data.get('username')
-        namaProduk = data.get('namaProduk')
-        harga = data.get('harga')
-        toserbaname = data.get('toserbaname')
+                # Extract relevant information from the JSON data
+                username = data.get('username')
+                namaProduk = data.get('namaProduk')
+                harga = data.get('harga')
+                toserbaname = data.get('toserbaname')
+                barangId = data.get('barangId')
 
-        mylist_doc = {
-            'username': username,
-            'namaProduk': namaProduk,
-            'harga': harga,
-            'toserbaname': toserbaname
-        }
-        db.mylist.insert_one(mylist_doc)
+                
+                product = db.produk.find_one({'_id': ObjectId(barangId)})
+                if product:
+                    mylist_doc = {
+                        'userId':user_id,
+                        'username': username,
+                        'namaProduk': namaProduk,
+                        'harga': harga,
+                        'toserbaname': toserbaname,
+                        'barangId':barangId,
+                        'jumlah':1
+                    }
+                    db.mylist.insert_one(mylist_doc)
 
-        # Return a success response to the client
-        return jsonify({"success": True, "message": "Product added to MyList successfully"})
-    
-    except Exception as e:
-        # Log the error for debugging
-        print(f"Error in add_to_mylist route: {e}")
-        return jsonify({"success": False, "message": str(e)})
+                # Return a success response to the client
+                return jsonify({"success": True, "message": "Product added to MyList successfully"})
+            
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Error in add_to_mylist route: {e}")
+                return jsonify({"success": False, "message": str(e)})
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))  
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
 @app.route('/get_mylist', methods=['GET'])
 def get_mylist():
@@ -865,26 +961,31 @@ def get_mylist():
         # Get the currently logged-in user's username from the JWT token
         token_receive = request.cookies.get('token')
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-        username = payload.get('username')
+        user_role = payload['role']
+        user_id = payload['id']
+        if user_role == 'customer':
+            # Fetch mylist data for the logged-in user from the database
+            mylist_data = db.mylist.find({'userId': user_id})
 
-        # Fetch mylist data for the logged-in user from the database
-        mylist_data = db.mylist.find({'username': username})
+            # Create a list to store mylist items
+            mylist_items = []
 
-        # Create a list to store mylist items
-        mylist_items = []
+            # Iterate through mylist data and extract relevant information
+            for item in mylist_data:
+                mylist_item = {
+                    'listId':str(item.get('_id')),
+                    'username': item.get('username'),
+                    'namaProduk': item.get('namaProduk'),
+                    'harga': item.get('harga'),
+                    'toserbaname': item.get('toserbaname'),
+                    'jumlah':item.get('jumlah')
+                }
+                mylist_items.append(mylist_item)
 
-        # Iterate through mylist data and extract relevant information
-        for item in mylist_data:
-            mylist_item = {
-                'username': item.get('username'),
-                'namaProduk': item.get('namaProduk'),
-                'harga': item.get('harga'),
-                'toserbaname': item.get('toserbaname')
-            }
-            mylist_items.append(mylist_item)
-
-        # Return the mylist data as a JSON response
-        return jsonify({"success": True, "mylist_items": mylist_items})
+            # Return the mylist data as a JSON response
+            return jsonify({"success": True, "mylist_items": mylist_items})
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!')) 
     
     except jwt.ExpiredSignatureError:
         return jsonify({"success": False, "message": "Token has expired"})
@@ -894,6 +995,33 @@ def get_mylist():
         # Log the error for debugging
         print(f"Error in get_mylist route: {e}")
         return jsonify({"success": False, "message": str(e)})
+
+@app.route('/remove_mylist', methods=['POST'])
+def remove_mylist():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        
+        if user_role == 'customer':
+           
+            listId = ObjectId(request.form['listId'])
+
+            product = db.mylist.find_one({'_id': listId})
+            if product:
+                product = db.mylist.delete_one({'_id': listId})
+                # Return a success response to the client
+                return jsonify({"result": "success"})
+            else:
+                return jsonify({"result": "fail"})
+            
+            
+        else:
+            return redirect(url_for('login',msg='Role tidak sesuai!'))  
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
 
 @app.route('/add_to_favorites', methods=['POST'])
 def add_to_favorites():
