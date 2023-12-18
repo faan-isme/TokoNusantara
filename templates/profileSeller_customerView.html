@@ -202,6 +202,7 @@
 
 
 
+
         $(document).ready(function () {
             
             // Initial setup
@@ -230,6 +231,7 @@
             kategori("SemuaLink");
 
         });
+
 
 
         // Function to retrieve MyList items from the server
@@ -455,6 +457,7 @@
         function showAlertProfile() {
             alert("Please log in first.");
         }
+
     </script>
 </head>
 
@@ -463,6 +466,7 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link">
+
             {% if username %}
             <a href="/home" class="link-list">Home</a>
             <a class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"

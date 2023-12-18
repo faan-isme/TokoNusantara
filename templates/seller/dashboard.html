@@ -78,6 +78,14 @@
         max-width: 75rem;
     }
 
+    /* Add a new style for flex container */
+    .cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        /* Adjust as needed */
+    }
+
     .card {
         margin-bottom: 20px;
         border-radius: 10px;
@@ -104,6 +112,20 @@
         /* Set the desired width for the left column */
         width: 50%;
     }
+
+    /* Add a new style for flex container */
+    .container-wrapper {
+        display: flex;
+        justify-content: space-between;
+        /* Adjust as needed */
+    }
+
+    .container {
+        /* Adjust container styles as needed */
+        flex: 0 0 calc(50% - 20px);
+        /* Adjust width as needed with margin */
+        margin-bottom: 20px;
+    }
 </style>
 {% endblock %}
 {% block navbar %}
@@ -113,6 +135,7 @@
 {% endblock %}
 {% block script %}
 <script>
+
     function konfimHapusBarang(id) {
         // Mengambil nilai data-id dari tombol yang diklik
 
@@ -195,6 +218,12 @@
         }
 
     }
+
+    //  memodifikasi titik pada tiap 3 digit
+    function formatPrice(price) {
+        const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(price);
+        return formattedPrice.endsWith(',00') ? formattedPrice.slice(0, -3) : formattedPrice;
+    }
     function editItem(id) {
         let item_id = $('#' + id);
         var id_barang = item_id.data('id');
@@ -268,97 +297,100 @@
         <span class="visually-hidden">Next</span>
     </button>
 </div>
-<div class="container card mt-3 pb-3" style="max-height: 400px;">
-    <h2 style="text-align:center; " class="mt-3"><strong>Daftar Produk</strong></h2>
-    <div class="table-responsive overflow-auto ">
-        <table class="table table-striped ">
-            <thead class="sticky-top bg-white">
-                <tr>
-                    <th scope="col" class="wider-column">Produk</th>
-                    <th scope="col">Harga</th>
-                    <th scope="col">Jumlah</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
+<div class="container-wrapper">
 
-            <tbody>
-                {% set data_list = data|list %}
-                {% if data_list|length == 0 %}
-                <tr>
-                    <td colspan="4">
-                        <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
-                    </td>
-                </tr>
-                {% else %}
-                {% for item in data_list %}
+    <div class="container card mt-3 pb-3" style="max-height: 400px;">
+        <h2 style="text-align:center; " class="mt-3"><strong>Daftar Produk</strong></h2>
+        <div class="table-responsive overflow-auto ">
+            <table class="table table-striped ">
+                <thead class="sticky-top bg-white">
+                    <tr>
+                        <th scope="col" class="wider-column">Produk</th>
+                        <th scope="col">Harga</th>
+                        <th scope="col">Jumlah</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
 
-                <tr>
-                    <td>{{item['namaBarang']}}</td>
-                    <td>{{item['harga']}}</td>
-                    <td>{{item['jumlah']}}</td>
-                    <td><button type="button" data-bs-toggle="modal" data-bs-target="#editProduct"
-                            class="edit-btn btn btn-warning" id="barang-{{ loop.index }}" data-harga="{{item['harga']}}"
-                            data-kategori="{{item['kategori']}}" data-nama="{{item['namaBarang']}}"
-                            data-jumlah="{{item['jumlah']}}" data-desc="{{item['desc']}}" data-foto="{{item['foto']}}"
-                            data-id="{{item['_id']}}" onclick="editItem(this.id)" style="width: 50px;"><i
-                                class="fa-solid fa-pen-to-square fa-lg" style="color: #ffffff;"></i></button>
-                        <button class="delete-btn btn btn-danger" style="width: 50px" data-bs-target="#hapuskonfirmasi"
-                            data-bs-toggle="modal" id="del-{{ loop.index }}" data-id="{{item['_id']}}"
-                            onclick="konfimHapusBarang(this.id)"><i class="fa-solid fa-trash-can fa-lg"
-                                style="color: #ffffff;"></i></button>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% endif %}
+                <tbody>
+                    {% set data_list = data|list %}
+                    {% if data_list|length == 0 %}
+                    <tr>
+                        <td colspan="4">
+                            <h3 class="text-center text-danger">Kamu belum memasukkan data produk!</h3>
+                        </td>
+                    </tr>
+                    {% else %}
 
+                    {% for item in data_list %}
 
+                    <tr>
+                        <td>{{item['namaBarang']}}</td>
+                        <td>{{item['harga']}}</td>
+                        <td>{{item['jumlah']}}</td>
+                        <td><button type="button" data-bs-toggle="modal" data-bs-target="#editProduct"
+                                class="edit-btn btn btn-warning" id="barang-{{ loop.index }}"
+                                data-harga="{{item['harga']}}" data-kategori="{{item['kategori']}}"
+                                data-nama="{{item['namaBarang']}}" data-jumlah="{{item['jumlah']}}"
+                                data-desc="{{item['desc']}}" data-foto="{{item['foto']}}" data-id="{{item['_id']}}"
+                                onclick="editItem(this.id)" style="width: 50px;"><i
+                                    class="fa-solid fa-pen-to-square fa-lg" style="color: #ffffff;"></i></button>
+                            <button class="delete-btn btn btn-danger" style="width: 50px"
+                                data-bs-target="#hapuskonfirmasi" data-bs-toggle="modal" id="del-{{ loop.index }}"
+                                data-id="{{item['_id']}}" onclick="konfimHapusBarang(this.id)"><i
+                                    class="fa-solid fa-trash-can fa-lg" style="color: #ffffff;"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
 
-
-
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
-<div class="container card mt-3 pb-3" style="max-height: 400px;">
-    <h2 style="text-align:center;" class="mt-3"><strong>Histori Transaksi</strong></h2>
-    <div class="table-responsive overflow-auto ">
-        <table class="table table-striped">
-            <thead class="sticky-top bg-white">
-                <tr>
-                    <th scope="col">Tanggal</th>
-                    <th scope="col" class="wider-column">Produk</th>
-                    <th scope="col">Jumlah</th>
-                    <th scope="col">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set histori_list = histori|list %}
-                {% if histori_list|length == 0 %}
-                <tr>
-                    <td colspan="4">
-                        <h3 class="text-center text-danger">Belum ada histori transaksi!</h3>
-                    </td>
-                </tr>
-                {% else %}
-                {% for item in histori_list %}
-                <tr>
-                    <td>{{item['tanggal']}}</td>
-                    <td>{{item['namaBarang']}}</td>
-                    <td>{{item['jumlah']}}</td>
-                    <td> <button class="delete-btn btn btn-danger" style="width: 50px"
-                            data-bs-target="#hapusHistoriKonfirmasi" data-bs-toggle="modal"
-                            id="historidel-{{ loop.index }}" data-id="{{item['_id']}}"
-                            onclick="konfimHapusHistori(this.id)"><i class="fa-solid fa-trash-can fa-lg"
-                                style="color: #ffffff;"></i></button>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% endif %}
+    <div class="container card mt-3 pb-3" style="max-height: 400px;">
+        <h2 style="text-align:center;" class="mt-3"><strong>Histori Transaksi</strong></h2>
+        <div class="table-responsive overflow-auto ">
+            <table class="table table-striped">
+                <thead class="sticky-top bg-white">
+                    <tr>
+                        <th scope="col">Tanggal</th>
+                        <th scope="col" class="wider-column">Produk</th>
+                        <th scope="col">Jumlah</th>
+                        <th scope="col">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set histori_list = histori|list %}
+                    {% if histori_list|length == 0 %}
+                    <tr>
+                        <td colspan="4">
+                            <h3 class="text-center text-danger">Belum ada histori transaksi!</h3>
+                        </td>
+                    </tr>
+                    {% else %}
+                    {% for item in histori_list %}
+                    <tr>
+                        <td>{{item['tanggal']}}</td>
+                        <td>{{item['namaBarang']}}</td>
+                        <td>{{item['jumlah']}}</td>
+                        <td> <button class="delete-btn btn btn-danger" style="width: 50px"
+                                data-bs-target="#hapusHistoriKonfirmasi" data-bs-toggle="modal"
+                                id="historidel-{{ loop.index }}" data-id="{{item['_id']}}"
+                                onclick="konfimHapusHistori(this.id)"><i class="fa-solid fa-trash-can fa-lg"
+                                    style="color: #ffffff;"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
+
 </div>
+
 
 <!-- Modal -->
 <div class="modal fade" id="editProduct" tabindex="-1" aria-labelledby="editProduct" aria-hidden="true">
@@ -394,6 +426,7 @@
                             <option value="Minuman">Minuman</option>
                             <option value="Sembako">Sembako</option>
                             <option value="Perabotan">Perabotan</option>
+                            <option value="Lainnya">Lainnya</option>
                         </select>
                         <p id="info-kategori" class="text-danger d-none"></p>
                     </div>
@@ -419,7 +452,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="desc" class="form-label" id="charCount">Deskripsi </label>
-                        <textarea class="form-control" id="desc" rows="3" name="desc" onkeyup="count_char()"></textarea>
+                        <textarea class="form-control" id="desc" rows="3" name="desc" onkeyup="count_char()"
+                            maxlength="25" oninput="count_char()"></textarea>
                         <p id="info-desc" class="text-danger d-none"></p>
                     </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>

@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from bson import ObjectId
 import shortuuid
 
-
 # Set the directories for uploaded photos
 USER_UPLOAD_FOLDER = 'static/profile_pics'
 PRODUCT_UPLOAD_FOLDER = 'static/foto_produk'
@@ -129,6 +128,7 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_role = payload['role']
+
         id_obj= ObjectId(payload['id'])
         user_id = payload['id']
         
@@ -161,10 +161,12 @@ def profile():
         id_obj = ObjectId(payload['id'])
         data = db.users.find_one({'_id': id_obj})
         user_role = payload['role']
+        total_items = db.produk.count_documents({'seller_id': str(id_obj)})
+
         if user_role == 'customer':
-            return render_template('profileCustomer.html',data=data,msg=msg,username=payload['username'])
+            return render_template('profileCustomer.html',data=data,msg=msg,username=payload['username'], total_items=total_items)
         elif user_role == 'seller':
-            return render_template('seller/profileSeller.html',data=data,msg=msg)
+            return render_template('seller/profileSeller.html',data=data,msg=msg, total_items=total_items)
         else:
             return redirect(url_for('login',msg='Role tidak sesuai!'))   
     except jwt.ExpiredSignatureError:
