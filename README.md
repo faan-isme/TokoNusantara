@@ -14,7 +14,7 @@ Capston Projek MSIB 5 LearningX kelompok1
   <li>buat branch baru sesuai fitur yang mau di buat<br>-git branch namaBranch<br>-git checkout namaBranch</li>
 </ol>
 
-# pull request rules
+# push rules
 <ol>
   <li>- git add. atau -git add namafile</li>
   <li>- git commit -m "isi pesan singkat"</li>
