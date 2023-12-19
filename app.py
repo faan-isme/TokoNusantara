@@ -1228,6 +1228,42 @@ def remove_favorites():
     except jwt.exceptions.DecodeError:
         return redirect(url_for("login", msg="Kamu harus login untuk menggunakan fitur ini!"))
 
-
+@app.route('/search')
+def search():
+    value_receive= request.args.get('value')
+    query = {'namaBarang': {'$regex': value_receive, '$options': 'i'}}
+     # Use find() to get a cursor and list() to convert it to a list
+    result_cursor = db.produk.find(query)
+    result_list = list(result_cursor)
+    result=[]
+    print(result_list)
+    if result_list != []:
+        for item in result_list:
+            barang_id = str(item['_id'])
+            namaBarang = item['namaBarang']
+            kategori = item['kategori']
+            jumlah = item['jumlah']
+            harga = item['harga']
+            desc = item['desc']
+            foto = item['foto']
+            seler_id = item['seller_id']
+            toserbaname = item['toserbaname']
+            
+            # tambahkan hasil ke list
+            result.append({
+                'barang_id' : barang_id,
+                'namaBarang' : namaBarang,
+                'kategori' : kategori,
+                'jumlah' : jumlah,
+                'harga' : harga,
+                'desc' : desc,
+                'foto' : foto,
+                'seler_id' : seler_id,
+                'toserbaname' : toserbaname
+            })
+        return jsonify({"success": True, "result": result})
+    else:
+        return jsonify({"success": False})
+    
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)

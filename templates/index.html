@@ -160,10 +160,75 @@
     </style>
     <script>
         $(document).ready(function () {
+            $('#search').keypress(function (e) {
+                if (e.which === 13) {
+                    refreshsearch();
+                }
+            });
             getSellers();
             getProducts();
+            {% if username %}
             getMyListItems();
+            {% endif %}
+
         });
+        function refreshsearch(){
+            value = $('#search').val();
+            value = $.trim(value)
+            if (value){
+                search()
+            }else{
+                alert('Silahkan masukkan keyword');
+                $("#returnSerch").empty();
+            }
+        }
+        function search() {
+            value = $('#search').val();
+            $.ajax({
+                type: "GET",
+                url: "/search",
+                data: { value: value },
+                success: function (data) {
+                    if (data.success) {
+                        var produkContainer = $("#returnSerch");
+                        produkContainer.empty();
+                        products = data.result
+
+                        products.forEach(function (product) {
+                            let hargapcs = formatRupiah(product.harga)
+                            var cardHtml = `
+                                        <div class="col">
+                                            <div class="card">
+                                                <div class="image-container" style="max-height: 80%; overflow: hidden;">
+                                                    <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
+                                                </div>
+                                                <div class="card-body">
+                                                    <h5 class="card-title">${product.namaBarang}</h5>
+                                                    <p class="card-name">${product.toserbaname}</p>
+                                                    <p class="card-text">${product.desc}</p>
+                                                    <p class="card-text">${hargapcs}</p>
+                                                    <p class="card-text">Tersisa ${product.jumlah}</p>
+                                                </div>
+                                                <div class="d-flex justify-content-around mb-3">
+                                                    <button onclick="addToMyList('${product.namaBarang}', ${product.harga}, '${product.toserbaname}','${product.barangId}')" class="btn btn-secondary">Tambah</button>
+                                                </div>
+                                            </div>
+                                        </div>`;
+
+                            // Append the card HTML to the container
+                            produkContainer.append(cardHtml);
+
+                        });
+                    } else {
+                        alert("data tidak ditemukan")
+                    }
+
+                },
+                error: function (error) {
+                    console.error("Error fetching products:", error);
+                }
+            });
+        }
         function is_name(asValue) {
             // boleh huruf dan angka, minimal 3 char, maksimal 15 char, 
             let regExp = /^[a-zA-Z0-9_-]{3,20}$/;
@@ -195,7 +260,7 @@
                     .text('Username tidak boleh kosong!')
                     .removeClass('d-none');
                 $("#newCustomerName").focus();
-    
+
                 return;
             }
             if (!is_name(username)) {
@@ -241,7 +306,7 @@
 
             form.submit();
         }
-        
+
         function refresh() {
             $('#newCustomerName').val("{{data['username']}}");
             $('#email').val("{{data['email']}}");
@@ -250,7 +315,7 @@
             $('#info-password').addClass('d-none');
             $('#info-email').addClass('d-none');
             $('#info-name').addClass('d-none');
-           
+
         }
         //ambil data seller
         function getSellers() {
@@ -347,8 +412,8 @@
             // Iterate through the products and append cards to the container
             for (let i = 0; i < Math.min(8, products.length); i++) {
                 var product = products[i];
-            //products.forEach(function (product) {
-                let hargapcs =formatRupiah(product.harga)
+                //products.forEach(function (product) {
+                let hargapcs = formatRupiah(product.harga)
                 var cardHtml = `
                             <div class="col">
                                 <div class="card">
@@ -397,7 +462,7 @@
             var totalPrice = 0;
 
             mylistItems.forEach(function (item) {
-                let hargapcs =formatRupiah(item.harga)
+                let hargapcs = formatRupiah(item.harga)
                 var rowHtml = `
                              <tr id="row-list">
                                  <td>${item.namaProduk}<br><a class="mylist-tokoname" href="/user/${item.toserbaname}" >${item.toserbaname}</a></td>
@@ -408,7 +473,7 @@
                 myListTableBody.append(rowHtml);
 
                 // Calculate total price
-                totalPrice += parseFloat(item.harga)*parseInt(item.jumlah);
+                totalPrice += parseFloat(item.harga) * parseInt(item.jumlah);
             });
 
             // Update the total price in the table footer
@@ -416,14 +481,14 @@
         }
         function formatRupiah(amount) {
             // Check if the input is a valid number
-            amount =parseFloat(amount)
+            amount = parseFloat(amount)
             if (isNaN(amount)) {
                 return "Invalid input";
             }
-        
+
             // Convert the number to a string and add thousand separators
             let formattedAmount = amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
-        
+
             return formattedAmount;
         }
 
@@ -534,7 +599,7 @@
                 data: JSON.stringify(data),
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
-                    
+
                     alert("Berhasil di tambahkan!");
                     location.reload(true)
 
@@ -569,7 +634,7 @@
                         let posts = response["posts"];
                         for (let i = 0; i < posts.length; i++) {
                             let post = posts[i];
-                            let hargapcs =formatRupiah(post['harga'])
+                            let hargapcs = formatRupiah(post['harga'])
                             let html_temp = `
                                             
 
@@ -665,11 +730,16 @@
 
     <div class="container d-flex flex-wrap justify-content-center mt-5">
         <div class="search" style="max-height: 50px; color:#000000; width: 60%;">
-            <input class="search-input" id="search" type="search" placeholder="mau cari apa?" onkeyup="ajax">
-            <i class="fa-solid fa-magnifying-glass fa-fade" style="color: #000000;" onclick="ambilValueDariSearch"></i>
+            <input class="search-input" id="search" type="search" placeholder="mau cari apa?">
+            <i class="fa-solid fa-magnifying-glass fa-fade" style="color: #000000;" onclick="search()"></i>
         </div>
     </div>
+    <!-- search result -->
+    <div class="container my-3">
+        <div id="returnSerch" class="row row-cols-1 row-cols-md-4 g-4">
 
+        </div>
+    </div>
     <!-- sidebar -->
     <div class="offcanvas offcanvas-start" data-bs-backdrop="static" tabindex="-1" id="staticBackdrop"
         aria-labelledby="staticBackdropLabel">
@@ -679,18 +749,19 @@
         </div>
         <div class="offcanvas-body">
             <div class="d-flex flex-column align-items-center">
-                
-                    <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
-                        <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
-                            style="height: 100%;">
-    
-                    </div>
-                    <figcaption class="figure-caption">{{username}}</figcaption>
-                    <!-- link edit profile tambahkan modal -->
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfile" onclick="refresh()">Edit</button>
-                
+
+                <div class="my-3" style="height: 10rem; width:10rem; border-radius:50%; overflow:hidden">
+                    <img src="{{ url_for('static', filename=data['profile_pic_real']) }}" alt="" class="img-circle"
+                        style="height: 100%;">
+
+                </div>
+                <figcaption class="figure-caption">{{username}}</figcaption>
+                <!-- link edit profile tambahkan modal -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfile"
+                    onclick="refresh()">Edit</button>
+
                 <h5>MyList</h5>
-                
+
                 <div class="card card-sidebar card-mylist wider-card">
                     <div class="card-body">
                         <p class="card-text">
@@ -773,94 +844,94 @@
         </div>
     </div>
 
-<!-- Modal -->
-<div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
+    <!-- Modal -->
+    <div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/profile/edit" method="post" enctype="multipart/form-data" id="formEditProfile">
 
-                    <div class="mb-3">
-                        <label for="newCustomerName" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="newCustomerName" name="username"
-                            value="{{data['username']}}">
-                        <p id="info-name" class="text-danger d-none"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
-                        <p id="info-email" class="text-danger d-none"></p>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">Edit password</label>
-                        <div class="d-flex">
-                            <input type="password" class="form-control me-2" id="password" name="password"
-                                placeholder="password">
-                            <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
-                                placeholder="new password">
+                        <div class="mb-3">
+                            <label for="newCustomerName" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="newCustomerName" name="username"
+                                value="{{data['username']}}">
+                            <p id="info-name" class="text-danger d-none"></p>
                         </div>
-                        <p id="info-password" class="text-danger d-none"></p>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{data['email']}}">
+                            <p id="info-email" class="text-danger d-none"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Edit password</label>
+                            <div class="d-flex">
+                                <input type="password" class="form-control me-2" id="password" name="password"
+                                    placeholder="password">
+                                <input type="password" class="form-control ms-2" id="newPassword" name="newPassword"
+                                    placeholder="new password">
+                            </div>
+                            <p id="info-password" class="text-danger d-none"></p>
 
-                    </div>
-                    <div class="mb-3">
-                        <label for="foto" class="form-label">Foto </label>
-                        <input class="form-control" type="file" id="foto" name="foto"
-                            value="{{data['profile_pic']}}">
-                        <p id="info-foto" class="text-danger d-none"></p>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foto" class="form-label">Foto </label>
+                            <input class="form-control" type="file" id="foto" name="foto"
+                                value="{{data['profile_pic']}}">
+                            <p id="info-foto" class="text-danger d-none"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Simpan perubahan</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<div class="modal fade" id="logoutKonfirmasi" aria-hidden="true" aria-labelledby="logoutTitle"
-tabindex="-1">
-<div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h1 class="modal-title fs-5" id="logoutTitle">Konfirmasi Logout</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            Apakah anda yakin ingin logout ?
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-warning " data-bs-dismiss="modal" type="button"
-                onclick="window.location.href = '/logout';">Konfirmasi</button>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+    <div class="modal fade" id="logoutKonfirmasi" aria-hidden="true" aria-labelledby="logoutTitle" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="logoutTitle">Konfirmasi Logout</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apakah anda yakin ingin logout ?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-warning " data-bs-dismiss="modal" type="button"
+                        onclick="window.location.href = '/logout';">Konfirmasi</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-dismiss="modal">Kembali</button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-</div>
 
-<div class="container-fluid sticky-bottom bg-white" style="box-shadow: 0rem -0.13rem 3px rgba(0, 0, 0, 0.15) !important;">
-    <footer class="container d-flex flex-wrap justify-content-between align-items-center py-2  border-top">
-        <div class="col-md-4 d-flex align-items-center">
-            <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">
-            </a>
+    <div class="container-fluid sticky-bottom bg-white"
+        style="box-shadow: 0rem -0.13rem 3px rgba(0, 0, 0, 0.15) !important;">
+        <footer class="container d-flex flex-wrap justify-content-between align-items-center py-2  border-top">
+            <div class="col-md-4 d-flex align-items-center">
+                <a href="/home" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-height: 25px;">
+                </a>
 
-        </div>
-        <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
-        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
-                        style="color: #f457c3;"></i></a></li>
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
-                        style="color: #eb2424;"></i></a></li>
-            <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
-                        style="color: #0b53d0;"></i></a></li>
+            </div>
+            <span class="mb-3 mb-md-0 text-body-secondary">© 2023 Toko Nusantara, </span>
+            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-instagram"
+                            style="color: #f457c3;"></i></a></li>
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-regular fa-envelope"
+                            style="color: #eb2424;"></i></a></li>
+                <li class="ms-3"><a class="text-body-secondary" href="#"><i class="fa-brands fa-facebook"
+                            style="color: #0b53d0;"></i></a></li>
 
-        </ul>
-    </footer>
-</div>
+            </ul>
+        </footer>
+    </div>
 
 </body>
 
