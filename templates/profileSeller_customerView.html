@@ -541,7 +541,7 @@
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
         <div class="nav-link text-center">
-            {% if username %}
+            {% if mydata['username'] %}
             <a href="/home" class="link-list">Home</a>
             <a class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
@@ -553,7 +553,7 @@
             {% endif %}
         </div>
         <div class="nav-logout">
-            {% if username %}
+            {% if mydata['username'] %}
             <a href="/logout" data-bs-target="#logoutKonfirmasi" data-bs-toggle="modal" class="logout"><i
                     class="fa-solid fa-arrow-right-from-bracket fa-lg"
                     style="color: #000000; padding-left: 4rem;"></i></a>

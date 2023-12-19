@@ -373,12 +373,24 @@
                                             <div class="card-body">
                                                 <h5 class="text-center">${seller.toserbaname}</h5>`;
 
-                                // ... (rest of your card HTML)
 
+                                // Conditionally include or exclude the description based on data availability
+                                if (seller.profile_info) {
+                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : ${seller.profile_info}</p>`;
+                                } else {
+                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-shop"></i> : -</p>`;
+                                }
+
+                                // Conditionally include or exclude the phone number based on data availability
+                                if (seller.no_telp) {
+                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : ${seller.no_telp}</p>`;
+                                } else {
+                                    cardHtml += `<p class="toserba-card"><i class="fa-solid fa-phone"></i> : -</p>`;
+                                }
                                 cardHtml += `
                                             </div>
                                             <div class="d-flex justify-content-around mb-5">
-                                                <a href="/user/${seller.toserbaname}" class="btn btn-secondary">Lihat</a>
+                                                <a href="/user/${seller.toserbaname}" class="btn btn-success" style="width:95%">Lihat</a>
                                             </div>
                                         </div>
                                     </div>

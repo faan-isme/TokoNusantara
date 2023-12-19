@@ -105,22 +105,30 @@
     }
 
     .wider-column {
-        /* Set the desired width for the left column */
+
         width: 50%;
     }
 
-    /* Add a new style for flex container */
+
     .container-wrapper {
         display: flex;
         justify-content: space-between;
-        /* Adjust as needed */
+
     }
+
 
     .container {
         /* Adjust container styles as needed */
         flex: 0 0 calc(50% - 20px);
         /* Adjust width as needed with margin */
         margin-bottom: 20px;
+    }
+
+    @media (max-width: 769px) {
+        .container-wrapper {
+            flex-wrap: wrap;
+            flex-direction: column;
+        }
     }
 </style>
 {% endblock %}

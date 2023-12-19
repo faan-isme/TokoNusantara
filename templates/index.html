@@ -219,15 +219,12 @@
                         var produkContainer = $("#returnSerch");
                         produkContainer.empty();
                         products = data.result
-
+                        let hasilpencarian = $("#hasilpencarian").append(`<h5>Hasil Pencarian</h5>`); 
                         products.forEach(function (product) {
                             let hargapcs = formatRupiah(product.harga)
                             var cardHtml = `
-                            <h5>Hasil Pencarian</h5>
-
-                            <div class="row row-cols-1 row-cols-md-4 g-4">
+                            
                                 <div class="col">
-                                    
                                     <div class="card">
                                         <div class="image-container" style="max-height: 80%; overflow: hidden;">
                                             <img src="/static/${product.foto}" class="card-img-top" alt="Product Image">
@@ -245,7 +242,7 @@
                                         
                                     </div>
                                 </div>
-                            </div>
+                                
                                        `;
 
                             // Append the card HTML to the container
@@ -773,9 +770,10 @@
         </div>
     </div>
     <!-- search result -->
-    <h5>
-    <div class="container my-3" id="returnSerch">
-        <div class="row row-cols-1 row-cols-md-4 g-4">
+    <div id="hasilpencarian" class="container"></div>
+    
+    <div class="container my-3">
+        <div id="returnSerch" class="row row-cols-1 row-cols-md-4 g-4">
 
         </div>
     </div>
