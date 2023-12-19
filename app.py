@@ -474,63 +474,63 @@ def get_products():
     
          
 
-    # route jual
-    @app.route('/jual', methods=['POST'])
-    def jual():
-        token_receive = request.cookies.get('token')
-        try:
-            payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-            user_role = payload['role']
-            user_id=payload['id']
-            if user_role == 'seller':
-                data_list = request.json
-                for item in data_list:
+# route jual
+@app.route('/jual', methods=['POST'])
+def jual():
+    token_receive = request.cookies.get('token')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        user_role = payload['role']
+        user_id=payload['id']
+        if user_role == 'seller':
+            data_list = request.json
+            for item in data_list:
+                
+                id_obj =ObjectId(item['id'])
+                result = db.produk.find_one({'_id':id_obj})
+                if not result:
+                    return jsonify(
+                        {
+                            "result": "fail",
+                            
+                        }
+                    )
+            # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
+            for item in data_list:
+                # tambahkan id barang
+                nama= item['nama']
+                jumlah= int(item['jumlah'])
+                tanggal= item['tanggal']
+                id_obj =ObjectId(item['id'])
+                # cari jumlah produk
+                produk = db.produk.find_one({'_id':id_obj})
+                stok =int(produk.get('jumlah'))
+                # update stok
+                updatestok = str(stok-jumlah)
+                db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
+                # masukkan ke hostori transaksi
+                doc ={
+                    'tanggal':tanggal,
+                    'namaBarang':nama,
+                    'jumlah':jumlah,
+                    'seller_id':user_id
+                }
+                db.histori.insert_one(doc)
+            
+            
+            return jsonify(
+                {
+                    "result": "success",
                     
-                    id_obj =ObjectId(item['id'])
-                    result = db.produk.find_one({'_id':id_obj})
-                    if not result:
-                        return jsonify(
-                            {
-                                "result": "fail",
-                                
-                            }
-                        )
-                # buat perulangan, ambil key id, cocokan dengan barang di db, update jumlah
-                for item in data_list:
-                    # tambahkan id barang
-                    nama= item['nama']
-                    jumlah= int(item['jumlah'])
-                    tanggal= item['tanggal']
-                    id_obj =ObjectId(item['id'])
-                    # cari jumlah produk
-                    produk = db.produk.find_one({'_id':id_obj})
-                    stok =int(produk.get('jumlah'))
-                    # update stok
-                    updatestok = str(stok-jumlah)
-                    db.produk.update_one({'_id':id_obj},{'$set':{'jumlah': updatestok}})
-                    # masukkan ke hostori transaksi
-                    doc ={
-                        'tanggal':tanggal,
-                        'namaBarang':nama,
-                        'jumlah':jumlah,
-                        'seller_id':user_id
-                    }
-                    db.histori.insert_one(doc)
-                
-                
-                return jsonify(
-                    {
-                        "result": "success",
-                        
-                    }
-                )
+                }
+            )
 
-            else:
-                return redirect(url_for('home',msg='Role tidak sesuai!'))   
-        except jwt.ExpiredSignatureError:
-            return redirect(url_for("login", msg="Token telah kadaluarsa"))
-        except jwt.exceptions.DecodeError:
-            return redirect(url_for("login", msg="Terjadi masalah saat login"))
+        else:
+            return redirect(url_for('home',msg='Role tidak sesuai!'))   
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="Token telah kadaluarsa"))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="Terjadi masalah saat login"))
         
 
     
