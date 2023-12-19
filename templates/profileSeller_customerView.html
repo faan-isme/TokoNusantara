@@ -39,8 +39,20 @@
             text-decoration: none;
         }
 
+        body {
+            margin-bottom: 56px;
+            /* Adjust this value based on your footer's height */
+        }
+
+        .sticky-bottom {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+            /* Ensure a higher z-index than other elements on the page */
+        }
+
         .card {
-            margin-bottom: 50px;
             border-radius: 10px;
             box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
         }
@@ -346,7 +358,7 @@
                 myListTableBody.append(rowHtml);
 
                 // Calculate total price
-                totalPrice += parseFloat(item.harga)*parseInt(item.jumlah);
+                totalPrice += parseFloat(item.harga) * parseInt(item.jumlah);
             });
 
             // Update the total price in the table footer
@@ -354,14 +366,14 @@
         }
         function formatRupiah(amount) {
             // Check if the input is a valid number
-            amount =parseFloat(amount)
+            amount = parseFloat(amount)
             if (isNaN(amount)) {
                 return "Invalid input";
             }
-        
+
             // Convert the number to a string and add thousand separators
             let formattedAmount = amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
-        
+
             return formattedAmount;
         }
 
@@ -415,8 +427,8 @@
             });
 
         }
-          //hpus favorit toko  dari side bar
-          function delfav(id) {
+        //hpus favorit toko  dari side bar
+        function delfav(id) {
             var sellerId = id
             $.ajax({
                 type: "POST",
@@ -455,7 +467,7 @@
                 data: JSON.stringify(data),
                 contentType: "application/json;charset=UTF-8",
                 success: function (response) {
-                   
+
                     alert("Berhasil di tambahkan!");
                     location.reload(true)
 
@@ -481,14 +493,14 @@
                         let posts = response["posts"];
                         for (let i = 0; i < posts.length; i++) {
                             let post = posts[i];
-                            let hargapcs =formatRupiah(post['harga'])
+                            let hargapcs = formatRupiah(post['harga'])
                             let html_temp = `
                                             
 
                             <div class="col">
                                 <div class="card">
                                     <div class="image-container" style="max-height: 80%; overflow: hidden;">
-                                        <img src="/static/${post['foto']}" class="card-img-top" alt="Product Image">
+                                        <img src="/static/${post['foto']}" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;"">
                                     </div>
                                     <div class="card-body">
                                         <h5 class="card-title">${post['namaBarang']}</h5>
@@ -496,10 +508,11 @@
                                         <p class="card-text">${post['desc']}</p>
                                         <p class="card-text">${hargapcs}</p>
                                         <p class="card-text">Tersisa ${post['jumlah']}</p>
+                                        <div class="d-flex justify-content-center"> <!-- Added d-flex and justify-content-center classes -->
+                                            <button onclick="addToMyList('${post['namaBarang']}', ${post['harga']}, '${post['toserbaname']}', '${post['_id']}')" class="btn btn-warning" style="width:95%">Tambah</button>
+                                        </div>
                                     </div>
-                                    <div class="d-flex justify-content-around mb-3">
-                                        <button onclick="addToMyList('${post['namaBarang']}', ${post['harga']}, '${post['toserbaname']}', '${post['_id']}')" class="btn btn-warning " style="width:95%">Tambah</button>
-                                    </div>
+                                    
                                 </div>
                             </div>
                             
@@ -527,9 +540,8 @@
 
     <nav class="nav-container fixed-top">
         <div class="navbar-brand"><img src="/static/logo.png" alt="" style="max-height: 25px;"></div>
-        <div class="nav-link">
-
-            {% if mydata['username'] %}
+        <div class="nav-link text-center">
+            {% if username %}
             <a href="/home" class="link-list">Home</a>
             <a class="link-list" type="button" data-bs-toggle="offcanvas" data-bs-target="#staticBackdrop"
                 aria-controls="staticBackdrop">MyList</a>
@@ -541,19 +553,18 @@
             {% endif %}
         </div>
         <div class="nav-logout">
-            {% if mydata['username'] %}
-            <a type="button" class="logout" data-bs-target="#logoutKonfirmasi" data-bs-toggle="modal"><i
-                    class="fa-solid fa-arrow-right-from-bracket fa-lg" style="color: #000000;"></i></a>
+            {% if username %}
+            <a href="/logout" data-bs-target="#logoutKonfirmasi" data-bs-toggle="modal" class="logout"><i
+                    class="fa-solid fa-arrow-right-from-bracket fa-lg"
+                    style="color: #000000; padding-left: 4rem;"></i></a>
             {% else %}
             <a href="/login" class="logout"><i class="fa-solid fa-arrow-right-from-bracket fa-lg"
-                    style="color: #000000;"></i></a>
+                    style="color: #000000; padding-left: 4rem;"></i></a>
             {% endif %}
-
-
         </div>
     </nav>
 
-    <div class="container-fluid" style="background-color: #ffc536ff;">
+    <div class="container-fluid" style="background-color: #ffde59;">
         <br>
 
         <div class="container-sm  d-flex  justify-content-center flex-wrap">
@@ -599,12 +610,13 @@
                 </div>
             </div>
             <div class="container d-flex justify-content-center">
-                <div class="navbar">
+                <div class="navbar navbar-kategori">
                     <a href="#" id="SemuaLink" class="myswitch active mx-2" onclick="kategori(this.id)">Semua</a>
                     <a href="#" id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)">Sembako</a>
                     <a href="#" id="KebersihanLink" class="myswitch mx-2" onclick="kategori(this.id)">Kebersihan</a>
                     <a href="#" id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)">Perabotan</a>
                     <a href="#" id="MakananLink" class="myswitch mx-2" onclick="kategori(this.id)">Makanan</a>
+                    <a href="#" id="LainnyaLink" class="myswitch mx-2" onclick="kategori(this.id)">Lainnya</a>
                 </div>
             </div>
         </div>
@@ -682,7 +694,7 @@
             </div>
         </div>
     </div>
-    <div class="container my-3">
+    <div class="container pt-3">
         <div id="post-box" class="row row-cols-1 row-cols-md-4 g-4">
 
         </div>
