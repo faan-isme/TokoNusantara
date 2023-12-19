@@ -374,7 +374,6 @@ def get_products():
                 
             else:
                 seller_id =payload['id']
-                print(seller_id)
                 
                 if kategori== 'Semua':
                     posts = list(db.produk.find({'seller_id':seller_id}))
@@ -1215,7 +1214,6 @@ def search():
     result_cursor = db.produk.find(query)
     result_list = list(result_cursor)
     result=[]
-    print(result_list)
     if result_list != []:
         for item in result_list:
             barang_id = str(item['_id'])
