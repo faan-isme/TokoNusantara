@@ -373,53 +373,32 @@ def get_products():
                         )
                 
             else:
-                seller_id =payload['toserbaname']
-                if use_user_id:
-                    if kategori== 'Semua':
-                        posts = list(db.produk.find({'seller_id':seller_id}))
-                        for post in posts:
-                            post["_id"]=str(post["_id"])
-                        return jsonify(
-                            {
-                                "result": "success",
-                                "posts": posts
-                                
-                            }
-                        )
-                    else:
-                        posts = list(db.produk.find({'kategori':kategori,'seller_id':seller_id}))
-                        for post in posts:
-                            post["_id"]=str(post["_id"])
-                        return jsonify(
-                            {
-                                "result": "success",
-                                "posts": posts
-                                
-                            }
-                        )
+                seller_id =payload['id']
+                print(seller_id)
+                
+                if kategori== 'Semua':
+                    posts = list(db.produk.find({'seller_id':seller_id}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    )
                 else:
-                    if kategori== 'Semua':
-                        posts = list(db.produk.find())
-                        for post in posts:
-                            post["_id"]=str(post["_id"])
-                        return jsonify(
-                            {
-                                "result": "success",
-                                "posts": posts
-                                
-                            }
-                        )
-                    else:
-                        posts = list(db.produk.find({'kategori':kategori}))
-                        for post in posts:
-                            post["_id"]=str(post["_id"])
-                        return jsonify(
-                            {
-                                "result": "success",
-                                "posts": posts
-                                
-                            }
-                        )
+                    posts = list(db.produk.find({'kategori':kategori,'seller_id':seller_id}))
+                    for post in posts:
+                        post["_id"]=str(post["_id"])
+                    return jsonify(
+                        {
+                            "result": "success",
+                            "posts": posts
+                            
+                        }
+                    )
+               
         except jwt.ExpiredSignatureError:
             return redirect(url_for("login", msg="Token telah kadaluarsa"))
         except jwt.exceptions.DecodeError:
