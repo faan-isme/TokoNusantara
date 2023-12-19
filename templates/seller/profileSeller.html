@@ -97,7 +97,7 @@
     function kategori(id) {
         // Get the id of the clicked link
         var category = id.split("Link")[0];
-    
+
         // Send an AJAX request to the server to get product data
         $.ajax({
             type: "GET",
@@ -160,7 +160,7 @@
             }
         });
     }
-    
+
     function is_desc_prod(asValue) {
         var regExp = /^([A-Za-z0-9()\/@*.,:!@#$%\s]{0,25})?$/;
         return regExp.test(asValue);
@@ -449,32 +449,35 @@
             <div class="navbar">
                 <a id="SemuaLink" class="myswitch nav-active mx-2" onclick="kategori(this.id)"
                     style="cursor: pointer;">Semua</a>
-                <a id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)"
-                    style="cursor: pointer;">Sembako</a>
-                <a id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)"
-                    style="cursor: pointer;">Parabot</a>
+                <a id="ElektronikLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Elektronik</a>
+                <a id="KecantikanLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Kecantikan</a>
+                <a id="KebersihanLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Kebersihan</a>
                 <a id="MakananLink" class="myswitch mx-2" onclick="kategori(this.id)"
                     style="cursor: pointer;">Makanan</a>
                 <a id="MinumanLink" class="myswitch mx-2" onclick="kategori(this.id)"
                     style="cursor: pointer;">Minuman</a>
-                <a id="ElektronikLink" class="myswitch mx-2" onclick="kategori(this.id)"
-                    style="cursor: pointer;">Elektronik</a>
+                <a id="PerabotanLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Perabotan</a>
+                <a id="SembakoLink" class="myswitch mx-2" onclick="kategori(this.id)"
+                    style="cursor: pointer;">Sembako</a>
                 <a id="LainnyaLink" class="myswitch mx-2" onclick="kategori(this.id)"
                     style="cursor: pointer;">Lainnya</a>
-
             </div>
         </div>
 
     </div>
 </div>
 <div>
-    
+
 </div>
 <div class="container-lg mt-5" id="post-box-container">
     <h5>Daftar Produk</h5>
     <div class="row row-cols-1 row-cols-md-4 g-10" id="post-box">
         <!-- card barang -->
-        
+
 
     </div>
 </div>
