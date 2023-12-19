@@ -44,3 +44,14 @@
     border-radius: 0;
     outline: none;
 }
+
+body {
+    margin-bottom: 56px;
+}
+
+.sticky-bottom {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}
